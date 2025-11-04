@@ -18,9 +18,7 @@ const ProductReviews = () => {
             <Divider my={4} />
 
             <ReviewCard />
-            <ReviewCard />
-            <ReviewCard />
-            <ReviewCard />
+            
         </Box>
     );
 };

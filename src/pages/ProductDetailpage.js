@@ -9,6 +9,7 @@ import ProductReviews from '../components/ProductReviews';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import ProductListing from '../components/FeatureProducts';
+import SimilarProducts from '../components/SimilarProducts';
 
 const ProductPage = () => {
     const { id } = useParams(); // Get the product ID from the route
@@ -53,8 +54,8 @@ const ProductPage = () => {
             </Grid>
 
             {/* Reviews Section */}
-            <ProductReviews reviews={product.reviews} />  {/* Pass product reviews */}
-            <ProductListing />
+            <ProductReviews reviews={product.reviews} id = {product.id}  />  {/* Pass product reviews */}
+            <SimilarProducts/>
             <Footer />
         </>
     );

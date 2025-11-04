@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IconButton, Box, Heading, SimpleGrid, Stat, StatLabel, StatNumber, StatHelpText, StatArrow, Grid, GridItem } from '@chakra-ui/react';
+import { Select, IconButton, Box, Heading, SimpleGrid, Stat, StatLabel, StatNumber, StatHelpText, StatArrow, Grid, GridItem } from '@chakra-ui/react';
 import { Bar, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { ArrowBackIcon } from '@chakra-ui/icons';
@@ -16,12 +16,14 @@ const Earnings = () => {
   const [percentageChange, setPercentageChange] = useState(new Array(12).fill(0)); // Track percentage change for each month
   const [hoveredMonth, setHoveredMonth] = useState(new Date().getMonth()); // Track hovered month
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // Set current month as default
-
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   // Categorize earnings by month
-  const categorizeEarningsByMonth = (orders) => {
+  const categorizeEarningsByMonth = (orders, year) => {
     const earningsByMonth = new Array(12).fill(0);
 
-    orders.forEach((order) => {
+    orders
+    .filter((order) => new Date(order.placed_at).getFullYear() === year) // Filter by selected year
+    .forEach((order) => {
       const orderDate = new Date(order.placed_at);
       const month = orderDate.getMonth(); // Get month index (0 for Jan, 11 for Dec)
       earningsByMonth[month] += order.total;
@@ -67,9 +69,13 @@ const Earnings = () => {
 
   useEffect(() => {
     if (orders.length > 0) {
-      categorizeEarningsByMonth(orders);
+      categorizeEarningsByMonth(orders, selectedYear);
     }
-  }, [orders]);
+  }, [orders, selectedYear]);
+
+  const handleYearChange = (event) => {
+    setSelectedYear(parseInt(event.target.value, 10));
+  };
 
   const barData = {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -167,7 +173,17 @@ const Earnings = () => {
 
       <Box flex="1" p="20px" overflowY="auto">
         <Heading mb="20px" color="#F47D31">Earnings Analytics</Heading>
-
+      {/* Year Selector */}
+      <Select width="150px" mb="4" value={selectedYear} onChange={handleYearChange}>
+          {[...Array(5)].map((_, i) => {
+            const year = new Date().getFullYear() - i; // Show last 5 years
+            return (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            );
+          })}
+        </Select>
         <SimpleGrid columns={2} spacing={10} mb="20px">
           <Stat>
             <StatLabel>Total Earnings</StatLabel>

@@ -62,3 +62,13 @@ export const deleteProduct = async (id) => {
     console.error(`Error deleting product ${id}:`, error);
   }
 };
+// Add Tag to Product
+export const addTagToProduct = async (productId, tag) => {
+  try {
+    const response = await api.post(`http://127.0.0.1:8000/add-tag-to-product/${productId}/`, { tag });
+    return response.data;  // Return the response, which could be updated product info or confirmation
+  } catch (error) {
+    console.error("Error adding tag to product:", error);
+    throw error; // Throw error for further handling
+  }
+};

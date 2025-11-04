@@ -7,7 +7,7 @@ import { useProducts } from '../hooks/useProducts';  // React Query hook to fetc
 import useCartStore from '../stores/cartStore';  // Zustand store for cart state
 import { toast } from 'react-toastify';
 import axios from 'axios';  // Axios for fetching vendor-specific products
-
+import LikeProduct from './LikeProduct';
 function ProductListing({ vendorId }) {
     const { data: products, isLoading, error } = useProducts();  // Fetch products using React Query
     const { addToCartMutation } = useCart();  // Use cart operations from React Query and Zustand
@@ -112,6 +112,11 @@ function ProductListing({ vendorId }) {
                             borderRadius="md"
                             bg="gray.100"
                         >
+                            <Box position="relative">
+  <Box position="absolute" right={0} marginLeft={30}>
+    <LikeProduct productId={product.id} />
+  </Box>
+</Box>
                             {product.images && product.images.length > 0 ? (
                                 <Image
                                     src={product.images[0].image}  // Display the first image

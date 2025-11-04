@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import {
@@ -28,14 +29,19 @@ function ProductListing({ vendorId }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({ next: null, previous: null });
-
+    
+    const [searchParams] = useSearchParams();
+    const categoryId = searchParams.get('category');
+    console.log('Category id',categoryId)
     const [initialLoad, setInitialLoad] = useState(true);  // Track initial load
-
+    const isInitialRender = useRef(true);
     useEffect(() => {
         if (initialLoad && location.state?.preSelectSort) {
             setSortBy(location.state.preSelectSort);
             setInitialLoad(false);
         }
+
+       
     }, [location.state, setSortBy, initialLoad]);
 
     useEffect(() => {
@@ -46,14 +52,24 @@ function ProductListing({ vendorId }) {
         if (!initialLoad) {
             fetchProducts();  // Fetch products after initial sort is set
         }
-    }, [query, collectionId, minPrice, maxPrice, sortBy]);
+    }, [query, collectionId, minPrice, maxPrice, sortBy, categoryId]);
+
+
+    useEffect(() => {
+        if (isInitialRender.current) {
+          if (categoryId && collectionId !== categoryId) {
+            setCollectionId(categoryId); // Set collectionId only if it differs from categoryId
+          }
+          isInitialRender.current = false; // Mark as no longer the initial render
+        }
+      }, [categoryId, collectionId, setCollectionId]);
 
     useEffect(() => {
         // Re-fetch products when sortBy changes
         if (sortBy) {
             fetchProducts();
         }
-    }, [sortBy]);
+    }, [sortBy, collectionId, categoryId]);
     useEffect(() => {
         if (initialLoad) {
             if (location.state?.preSelectSort) {
@@ -62,15 +78,19 @@ function ProductListing({ vendorId }) {
             fetchProducts(); // Ensure fetch happens after initial sort is set
             setInitialLoad(false); // Mark initial load as handled
         }
-    }, [location.state, setSortBy, initialLoad]);
+    }, [location.state, setSortBy, initialLoad, collectionId]);
     // Debounced search function for query
+
+// New useEffect for syncing categoryId with selectedCollectionId
+ // Dependency array now includes collectionId
+
     const debouncedSearch = useCallback(
         debounce(async (searchTerm) => {
             try {
                 setLoading(true);
                 const params = {
                     search: searchTerm,
-                    collection_id: collectionId,
+                    collection_id: collectionId, // Use collectionId only if categoryId is not present
                     unit_price__gt: minPrice,
                     unit_price__lt: maxPrice,
                     ordering: sortBy,
@@ -78,6 +98,7 @@ function ProductListing({ vendorId }) {
                 const { data } = await axios.get(`http://127.0.0.1:8000/store/products/`, { params });
                 setProducts(data.results || []);
                 setPagination({ next: data.next, previous: data.previous });
+                console.log('Fetching with params:', params);  // Log the params to check if category_id is included
             } catch (error) {
                 setError('Failed to load products.');
             } finally {
@@ -107,7 +128,13 @@ function ProductListing({ vendorId }) {
         return () => {
             debouncedSearch.cancel();  // Clean up debounce on unmount
         };
-    }, [query, collectionId, minPrice, maxPrice, sortBy, debouncedSearch]);
+    }, [query, collectionId, minPrice, maxPrice, sortBy, debouncedSearch, setCollectionId]);
+
+    useEffect(() => {
+if(categoryId){
+    fetchProducts()
+}
+},[categoryId])
 
     // Fetch products based on filters and search term
     const fetchProducts = async () => {
@@ -115,7 +142,7 @@ function ProductListing({ vendorId }) {
             setLoading(true);
             const params = {
                 search: query,
-                collection_id: collectionId,
+                collection_id: collectionId, 
                 unit_price__gt: minPrice,
                 unit_price__lt: maxPrice,
                 ordering: sortBy,
@@ -198,6 +225,7 @@ function ProductListing({ vendorId }) {
                     setMinPrice('');
                     setMaxPrice('');
                     setSortBy('');
+                    
                 }}>Clear Filters</Button>
             </Box>
         );
@@ -281,6 +309,7 @@ function ProductListing({ vendorId }) {
             {/* Product List */}
             <Grid templateColumns="repeat(auto-fill, minmax(240px, 1fr))" gap={6}>
                 {products.map((product) => (
+                    
                     <Box
                         key={product.id}
                         p={4}
@@ -290,6 +319,12 @@ function ProductListing({ vendorId }) {
                         _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
                         transition="transform 0.3s ease"
                     >
+                        <Box position="relative">
+  <Box position="absolute" right={0} marginLeft={30}>
+    <LikeProduct productId={product.id} />
+  </Box>
+</Box>
+                        
                         <Box height="200px" width="100%" overflow="hidden" mb={4} borderRadius="md" bg="gray.100">
                             {product.images && product.images.length > 0 ? (
                                 <Image
@@ -315,9 +350,7 @@ function ProductListing({ vendorId }) {
     border="1px solid #e2e8f0"
     borderRadius="md"
 >
-    <Box position="absolute" top={2} right={2}>
-        <LikeProduct productId={product.id} />
-    </Box>
+
     {/* Other product details */}
 </Box>
 

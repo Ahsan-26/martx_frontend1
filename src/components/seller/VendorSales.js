@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Select,
   Box,
   Text,
   Spinner,
@@ -19,6 +20,9 @@ const VendorSales = () => {
   const { orders = [], loading, error, fetchVendorOrders } = useVendorOrderStore();
   const [totalSales, setTotalSales] = useState(0);
   const [filteredOrders, setFilteredOrders] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const navigate = useNavigate();
   const location = useLocation();
   const dayFilter = location.state?.day; // Get the day filter from route state
@@ -32,31 +36,27 @@ const VendorSales = () => {
     setTotalSales(total);
   };
 
-  // Correct filter function for orders by day
-  const filterOrdersByDay = (orders, day) => {
+   // Filter orders by month and day
+   const filterOrders = (orders, month, day, year) => {
     return orders.filter((order) => {
       const orderDate = new Date(order.placed_at);
-      const orderDay = (orderDate.getDay() + 6) % 7; // Adjust week start from Monday
-      return orderDay === day;
+      const isSameMonth = orderDate.getMonth() === month;
+      const isSameYear = orderDate.getFullYear() === year;
+      const isSameDay = day !== null ? orderDate.getDate() === day : true;
+      return isSameMonth && isSameYear && isSameDay;
     });
   };
+
 
   useEffect(() => {
     if (orders.length === 0) {
       fetchVendorOrders(); // Fetch orders if not already fetched
     } else {
-      if (dayFilter !== undefined) {
-        // If navigated with a day filter, filter the orders
-        const filtered = filterOrdersByDay(orders, dayFilter);
-        setFilteredOrders(filtered);
-        calculateSales(filtered);
-      } else {
-        // Otherwise, display all orders
-        setFilteredOrders(orders);
-        calculateSales(orders);
-      }
+      const filtered = filterOrders(orders, selectedMonth, selectedDay, selectedYear);
+      setFilteredOrders(filtered);
+      calculateSales(filtered);
     }
-  }, [orders, fetchVendorOrders, dayFilter]);
+  }, [orders, fetchVendorOrders, selectedMonth, selectedDay, selectedYear]);
 
   if (loading) {
     return (
@@ -106,6 +106,43 @@ const VendorSales = () => {
           </Text>
         </Box>
 
+        <HStack spacing={4} justifyContent="center" mb={4}>
+          <Select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(parseInt(e.target.value, 10))}
+          >
+            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(
+              (month, index) => (
+                <option key={index} value={index}>
+                  {month}
+                </option>
+              )
+            )}
+          </Select>
+
+          <Select
+            value={selectedDay || ''}
+            onChange={(e) => setSelectedDay(e.target.value ? parseInt(e.target.value, 10) : null)}
+          >
+            <option value="">All Days</option>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+              <option key={day} value={day}>
+                {day}
+              </option>
+            ))}
+          </Select>
+
+          <Select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
+          >
+            {[2023, 2024, 2025].map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </Select>
+        </HStack>
         <Box mt={6} bg="white" p={4} borderRadius="md" boxShadow="md">
           <Text fontSize="xl" fontWeight="bold" color="#0A0E27" mb={4}>
             Sales List

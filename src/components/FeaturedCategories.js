@@ -1,24 +1,42 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // For navigation
 import Slider from 'react-slick';
 import { Box, Image, Text, Flex, Spinner } from '@chakra-ui/react';
-import axios from 'axios';  // Axios for making API requests
-import { toast } from 'react-toastify';  // Toast for error handling
+import axios from 'axios'; // Axios for making API requests
+import { toast } from 'react-toastify'; // Toast for error handling
 
 function FeaturedCategories() {
-    const [categories, setCategories] = useState([]);  // State to store categories from API
-    const [loading, setLoading] = useState(true);  // Loading state
-    const [error, setError] = useState(null);  // Error state
+    const [categories, setCategories] = useState([]); // State to store categories from API
+    const [loading, setLoading] = useState(true); // Loading state
+    const [error, setError] = useState(null); // Error state
+    const navigate = useNavigate(); // Initialize navigation hook
+
+    const categoryImages = {
+        1: '/category-imgs/flowersCategory.jpeg',
+        2: '/category-imgs/groceryCategory.jpg',
+        3: '/category-imgs/beautyCategory.jpg',
+        4: '/category-imgs/cleaningCategory.avif',
+        5: '/category-imgs/stationaryCategory.jpg',
+        6: '/category-imgs/petsCategory.jpg',
+        7: '/category-imgs/bakingCategory.jpg',
+        8: '/category-imgs/spicesCategory.jpeg',
+        9: '/category-imgs/toys.jpg',
+        10: '/category-imgs/magazinesCategory.jpg',
+        // 11: '/category-imgs/automotiveCategory.jpg',
+        // 12: '/category-imgs/furnitureCategory.jpg',
+    };
+
 
     // Fetch categories from the API when the component mounts
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/store/collections/');
-                setCategories(response.data);  // Assuming data is directly the array of categories
+                setCategories(response.data); // Assuming data is directly the array of categories
                 setLoading(false);
             } catch (err) {
                 setError('Failed to load categories');
-                toast.error('Failed to load categories');  // Show toast on error
+                toast.error('Failed to load categories'); // Show toast on error
                 setLoading(false);
             }
         };
@@ -85,32 +103,45 @@ function FeaturedCategories() {
         );
     }
 
+    // Navigate to /products with the selected category ID or name
+    const handleCategoryClick = (categoryId) => {
+        navigate(`/products?category=${categoryId}`);
+    };
+
     return (
         <Box py={{ base: 4, md: 8 }} px={{ base: 2, md: 4 }}>
             <Slider {...settings}>
                 {categories.map((category) => (
-                    <Flex key={category.id} direction="column" align="center" justify="center" mx={2}>
+                    <Flex
+                        key={category.id}
+                        direction="column"
+                        align="center"
+                        justify="center"
+                        mx={2}
+                        cursor="pointer"
+                        onClick={() => handleCategoryClick(category.id)} // Handle click
+                    >
                         <Box
                             borderRadius="full"
                             overflow="hidden"
-                            width={{ base: "70px", md: "90px", lg: "100px" }}
-                            height={{ base: "70px", md: "90px", lg: "100px" }}
+                            width={{ base: '70px', md: '90px', lg: '100px' }}
+                            height={{ base: '70px', md: '90px', lg: '100px' }}
                             mb={2}
                             border="2px solid #F47D31"
                             boxShadow="lg"
                         >
-                            {/* Placeholder Image - You can replace this with the actual category image if available */}
                             <Image
-                                src={`/category-imgs/default-category.jpg`}  // Replace with real image if available in the response
+                            src={categoryImages[category.id] || '/category-imgs/defaultCategory.jpg'} 
+                               // src={`/category-imgs/flowersCategory.jpg`} // Replace with real image if available in the response
                                 alt={category.title}
                                 width="100%"
                                 height="100%"
                                 objectFit="cover"
                                 transition="transform 0.3s"
-                                _hover={{ transform: "scale(1.1)" }}
+                                _hover={{ transform: 'scale(1.1)' }}
                             />
                         </Box>
-                        <Text fontSize={{ base: "xs", md: "sm", lg: "md" }} fontWeight="bold" color="#0A0E23">
+                        <Text fontSize={{ base: 'xs', md: 'sm', lg: 'md' }} fontWeight="bold" color="#0A0E23">
                             {category.title}
                         </Text>
                     </Flex>

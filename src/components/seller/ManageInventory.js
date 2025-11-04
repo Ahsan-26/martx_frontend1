@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Heading, Table, Thead, Tbody, Tr, Th, Td, IconButton, Button } from '@chakra-ui/react';
+import { Input, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, Button, IconButton, Box, Heading, Table, Thead, Tbody, Tr, Th, Td } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
-import { getProducts, createProduct, deleteProduct, updateProduct } from '../../services/productService';
+import { getProducts, createProduct, deleteProduct, updateProduct, addTagToProduct } from '../../services/productService';
 import AddProductModal from './AddProductModal'; 
 import { useDisclosure } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowBackIcon } from '@chakra-ui/icons';
+import { ArrowBackIcon, SmallAddIcon } from '@chakra-ui/icons';
+
+
 const ManageInventory = () => {
   const navigate = useNavigate();
   const [inventoryItems, setInventoryItems] = useState([]);
@@ -23,6 +25,7 @@ const ManageInventory = () => {
   const [previousPage, setPreviousPage] = useState(null);
   const [editingProductId, setEditingProductId] = useState(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [tagInputs, setTagInputs] = useState({});
 
   // Fetch data including pagination info
   const fetchData = async (url = null) => {
@@ -119,6 +122,37 @@ const ManageInventory = () => {
       setInventoryItems(inventoryItems.filter(item => item.id !== id));
     }
   };
+  const handleAddTagProduct = async (productId) => {
+    try {
+      const tag = tagInputs[productId]; // Get the input value for the tag
+      if (!tag) {
+        alert("Please enter a tag");
+        return;
+      }
+  
+      const response = await addTagToProduct(productId, tag); // Call the API service
+      alert("Tag added successfully!");
+  
+      // Update the inventoryItems state to reflect the added tag
+      setInventoryItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === productId ? { ...item, tags: [...(item.tags || []), tag] } : item
+        )
+      );
+  
+      // Clear the input field for the tag
+      setTagInputs({ ...tagInputs, [productId]: '' });
+    } catch (error) {
+      console.error("Failed to add tag to product:", error);
+      alert("Failed to add tag");
+    }
+  };
+  
+
+  const handleTagInputChange = (productId, value) => {
+    setTagInputs({ ...tagInputs, [productId]: value });
+  };
+  
 
   const handleNextPage = () => {
     if (nextPage) {
@@ -203,6 +237,37 @@ const ManageInventory = () => {
                   onClick={() => handleDeleteProduct(item.id)}
                   aria-label="Delete Product"
                 />
+                {/* Add Tag Popover */}
+                <Popover>
+                  <PopoverTrigger>
+                    <IconButton
+                      icon={<SmallAddIcon />}
+                      aria-label="Add Tag"
+                      colorScheme="orange"
+                      size="sm"
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent>
+                    <PopoverArrow />
+                    <PopoverCloseButton />
+                    <PopoverBody>
+                      <Input
+                        placeholder="Enter tag"
+                        value={tagInputs[item.id] || ''}
+                        onChange={(e) => handleTagInputChange(item.id, e.target.value)}
+                        size="sm"
+                        mb="2"
+                      />
+                      <Button
+                        onClick={() => handleAddTagProduct(item.id)}
+                        colorScheme="orange"
+                        size="sm"
+                      >
+                        Add Tag
+                      </Button>
+                    </PopoverBody>
+                  </PopoverContent>
+                </Popover>
               </Td>
             </Tr>
           ))}

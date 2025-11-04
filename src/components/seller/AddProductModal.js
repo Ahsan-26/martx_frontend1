@@ -4,6 +4,8 @@ import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, 
   Input, Select, Button
 } from '@chakra-ui/react';
+import axios from 'axios';
+import { useState } from 'react';
 
 const AddProductModal = ({
   isOpen,
@@ -15,6 +17,33 @@ const AddProductModal = ({
   collections,
   editingProductId
 }) => {
+  const [tags, setTags] = useState(''); // Add state for tags
+
+  const handleTagChange = (event) => {
+    setTags(event.target.value);  // Update tags state
+  };
+
+  const handleSubmit = async () => {
+    // Extract tags from input, split by commas, and trim any extra spaces
+    const tagList = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+
+    // Create the product data object to send to the backend
+    const productData = {
+      ...newProduct,
+      tags: tagList,  // Add tags to the product data
+    };
+
+    // Call API to add the product with tags
+    try {
+      await axios.post('products/', productData);
+      //await axios.post('add-tag-to-product/', tagList);
+      //add-tag-to-product/<int:product_id>/ [name='add-tag-to-product']
+      onClose();  // Close modal after success
+    } catch (error) {
+      console.error("Error adding product:", error);
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -90,6 +119,17 @@ const AddProductModal = ({
             bg="white"
             color="black"
           />
+           {/* Add Tag Input */}
+           <Input
+            name="tags"
+            placeholder="Enter Tags (comma-separated)"
+            value={tags}
+            onChange={handleTagChange}
+            mb="10px"
+            bg="white"
+            color="black"
+          />
+
         </ModalBody>
         <ModalFooter>
           <Button 

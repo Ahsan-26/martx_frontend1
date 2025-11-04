@@ -28,6 +28,8 @@ import GuestOrderTracking from './components/GuestOrderTracking';
 import VendorProductsPage from './components/VendorProductsPage';
 import ProductListing from './components/ProductListing';
 import Profile from './components/Profile';
+import Wishlist from './components/Wishlist';
+import ForYouProducts from './components/ForYouProducts';
 
 // Seller Dashboard Components
 import SellerDashboard from './components/seller/SellerDashboard';
@@ -78,6 +80,8 @@ function App() {
         <Router>
       
           <Routes>
+          <Route path="/foryou" element={<ForYouProducts/>}/>
+            <Route path="/wishlist" element={<Wishlist/>}/>
             <Route path="/sellersignup" element={<SellerSignup />} />
           <Route path="/profilepop" element={<ProfilePopover />} />
           <Route path="/auth" element={<AuthComponent />} />
