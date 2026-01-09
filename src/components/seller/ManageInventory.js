@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Input, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverCloseButton, PopoverBody, Button, IconButton, Box, Heading, Table, Thead, Tbody, Tr, Th, Td } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon } from '@chakra-ui/icons';
 import { getProducts, createProduct, deleteProduct, updateProduct, addTagToProduct } from '../../services/productService';
-import AddProductModal from './AddProductModal'; 
+import AddProductModal from './AddProductModal';
 import { useDisclosure } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowBackIcon, SmallAddIcon } from '@chakra-ui/icons';
@@ -20,6 +20,7 @@ const ManageInventory = () => {
     unit_price: null,
     collection: null,
     image: null,
+    images: null,
   });
   const [nextPage, setNextPage] = useState(null);
   const [previousPage, setPreviousPage] = useState(null);
@@ -28,12 +29,19 @@ const ManageInventory = () => {
   const [tagInputs, setTagInputs] = useState({});
 
   // Fetch data including pagination info
-  const fetchData = async (url = null) => {
+  // Fetch data including pagination info
+  const fetchData = async (url = 'http://127.0.0.1:8000/store/products') => {
     try {
       const products = await getProducts(url);
-      setInventoryItems(products.results);
-      setNextPage(products.next);
-      setPreviousPage(products.previous);
+      // Ensure products and products.results are valid before setting state
+      if (products && products.results) {
+        setInventoryItems(products.results);
+        setNextPage(products.next);
+        setPreviousPage(products.previous);
+      } else {
+        console.warn("fetchData received invalid data:", products);
+        // setInventoryItems([]); // Optional: clear items or keep previous?
+      }
     } catch (error) {
       console.error("Error fetching products:", error);
     }
@@ -51,10 +59,10 @@ const ManageInventory = () => {
         console.error("Error fetching products:", error);
       }
     }
-  
+
     fetchData();
   }, []);
-  
+
 
   useEffect(() => {
     async function fetchCollections() {
@@ -94,11 +102,10 @@ const ManageInventory = () => {
     onClose();
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (files) => {
     setNewProduct({
       ...newProduct,
-      image: file,
+      images: files,
     });
   };
 
@@ -129,17 +136,17 @@ const ManageInventory = () => {
         alert("Please enter a tag");
         return;
       }
-  
+
       const response = await addTagToProduct(productId, tag); // Call the API service
       alert("Tag added successfully!");
-  
+
       // Update the inventoryItems state to reflect the added tag
       setInventoryItems((prevItems) =>
         prevItems.map((item) =>
           item.id === productId ? { ...item, tags: [...(item.tags || []), tag] } : item
         )
       );
-  
+
       // Clear the input field for the tag
       setTagInputs({ ...tagInputs, [productId]: '' });
     } catch (error) {
@@ -147,62 +154,62 @@ const ManageInventory = () => {
       alert("Failed to add tag");
     }
   };
-  
+
 
   const handleTagInputChange = (productId, value) => {
     setTagInputs({ ...tagInputs, [productId]: value });
   };
-  
+
 
   const handleNextPage = () => {
     if (nextPage) {
       fetchData(nextPage); // Fetch data for the next page
     }
   };
-  
+
   const handlePreviousPage = () => {
     if (previousPage) {
       fetchData(previousPage); // Fetch data for the previous page
     }
   };
-  
+
 
   return (
-    <Box 
-      p="20px" 
-      bg="#0A0E23" 
-      color="white" 
-      border="2px" 
-      boxShadow="md" 
-      mt="0px" 
+    <Box
+      p="20px"
+      bg="#0A0E23"
+      color="white"
+      border="2px"
+      boxShadow="md"
+      mt="0px"
       borderRadius="lg"
     >
-       <IconButton
-                aria-label="Back"
-                icon={<ArrowBackIcon />}
-                colorScheme="orange"
-                onClick={() => navigate('/MainSellerPage')} 
-                mb="4"
-            />
+      <IconButton
+        aria-label="Back"
+        icon={<ArrowBackIcon />}
+        colorScheme="orange"
+        onClick={() => navigate('/MainSellerPage')}
+        mb="4"
+      />
       <Heading mb="20px" color="#F47D31">Manage Inventory</Heading>
 
       {/* Add Product Button */}
       <Box display="flex" justifyContent="flex-end" mb="10px">
-        <IconButton 
-          icon={<AddIcon />} 
-          colorScheme="orange" 
-          onClick={onOpen} 
-          aria-label="Add new product" 
+        <IconButton
+          icon={<AddIcon />}
+          colorScheme="orange"
+          onClick={onOpen}
+          aria-label="Add new product"
         />
       </Box>
 
       {/* Inventory Table */}
-      <Table 
-        variant="simple" 
-        bg="white" 
-        color="black" 
-        borderRadius="lg" 
-        mb="20px" 
+      <Table
+        variant="simple"
+        bg="white"
+        color="black"
+        borderRadius="lg"
+        mb="20px"
         size="sm"
       >
         <Thead bg="#F47D31">
@@ -302,6 +309,7 @@ const ManageInventory = () => {
         handleImageUpload={handleImageUpload}
         collections={collections}
         editingProductId={editingProductId}
+        onProductSaved={() => fetchData()}
       />
     </Box>
   );

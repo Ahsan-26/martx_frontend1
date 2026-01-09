@@ -9,6 +9,7 @@ import useCartStore from '../stores/cartStore'; // Zustand store for cart state
 import SearchBar from './SearchBar';
 import ProfilePopover from './ProfilePopover'; // Import the updated popover
 import BuyerSidebar from '../pages/BuyerSidebar';
+import CurrencySelector from './CurrencySelector';
 function Navbar() {
     const { isOpen, onOpen, onClose } = useDisclosure(); // For Cart Drawer
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure(); // For Guest Checkout Modal
@@ -41,7 +42,7 @@ function Navbar() {
             });
             return;
         }
-       // initiateCheckoutMutation({ cartId: localStorage.getItem('cartId'), guestInfo });
+        // initiateCheckoutMutation({ cartId: localStorage.getItem('cartId'), guestInfo });
         onModalClose();
     };
 
@@ -50,7 +51,7 @@ function Navbar() {
         const accessToken = localStorage.getItem('accessToken');
 
         if (accessToken) {
-           // initiateCheckoutMutation({ cartId, guestInfo: {} });
+            // initiateCheckoutMutation({ cartId, guestInfo: {} });
         } else {
             onModalOpen();
         }
@@ -87,6 +88,7 @@ function Navbar() {
 
                 {/* Cart & Profile Icons */}
                 <Flex align="center">
+                    <CurrencySelector />
                     {/* Profile Icon */}
                     <IconButton
                         ref={profileButtonRef} // Set the ref here

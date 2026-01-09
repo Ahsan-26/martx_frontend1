@@ -1,10 +1,10 @@
 // src/components/inventory/AddProductModal.js
 import React from 'react';
-import { 
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, 
+import {
+  Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
   Input, Select, Button
 } from '@chakra-ui/react';
-import axios from 'axios';
+import api from '../../services/authInterceptor';
 import { useState } from 'react';
 
 const AddProductModal = ({
@@ -15,7 +15,8 @@ const AddProductModal = ({
   handleAddProduct,
   handleImageUpload,
   collections,
-  editingProductId
+  editingProductId,
+  onProductSaved
 }) => {
   const [tags, setTags] = useState(''); // Add state for tags
 
@@ -24,23 +25,40 @@ const AddProductModal = ({
   };
 
   const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append('title', newProduct.title);
+    formData.append('description', newProduct.description);
+    formData.append('slug', newProduct.slug);
+    formData.append('unit_price', newProduct.unit_price);
+    formData.append('inventory', newProduct.inventory);
+    formData.append('collection', newProduct.collection);
+
     // Extract tags from input, split by commas, and trim any extra spaces
     const tagList = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+    // Append tags to formData
+    tagList.forEach(tag => formData.append('tags', tag));
 
-    // Create the product data object to send to the backend
-    const productData = {
-      ...newProduct,
-      tags: tagList,  // Add tags to the product data
-    };
+    // Append Images (assuming handleImageUpload sets newProduct.images as FileList or array)
+    if (newProduct.images) {
+      for (let i = 0; i < newProduct.images.length; i++) {
+        formData.append('images', newProduct.images[i]);
+      }
+    }
 
-    // Call API to add the product with tags
     try {
-      await axios.post('products/', productData);
-      //await axios.post('add-tag-to-product/', tagList);
-      //add-tag-to-product/<int:product_id>/ [name='add-tag-to-product']
-      onClose();  // Close modal after success
+      if (editingProductId) {
+        await api.patch(`http://127.0.0.1:8000/store/products/${editingProductId}/`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        await api.post('http://127.0.0.1:8000/store/products/', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
+      if (onProductSaved) onProductSaved();
+      onClose();
     } catch (error) {
-      console.error("Error adding product:", error);
+      console.error("Error saving product:", error);
     }
   };
 
@@ -114,13 +132,17 @@ const AddProductModal = ({
           <Input
             type="file"
             accept="image/*"
-            onChange={handleImageUpload}
+            multiple
+            onChange={(e) => handleImageUpload(e.target.files)}
             mb="10px"
             bg="white"
             color="black"
+            sx={{
+              paddingTop: "4px"
+            }}
           />
-           {/* Add Tag Input */}
-           <Input
+          {/* Add Tag Input */}
+          <Input
             name="tags"
             placeholder="Enter Tags (comma-separated)"
             value={tags}
@@ -132,10 +154,10 @@ const AddProductModal = ({
 
         </ModalBody>
         <ModalFooter>
-          <Button 
-            onClick={handleAddProduct} 
-            bg="#F47D31" 
-            color="white" 
+          <Button
+            onClick={handleSubmit}
+            bg="#F47D31"
+            color="white"
             _hover={{ bg: '#0A0E23', color: '#F47D31', border: '2px solid #F47D31' }}
           >
             {editingProductId ? 'Update Product' : 'Add Product'}

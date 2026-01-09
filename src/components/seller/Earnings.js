@@ -22,12 +22,12 @@ const Earnings = () => {
     const earningsByMonth = new Array(12).fill(0);
 
     orders
-    .filter((order) => new Date(order.placed_at).getFullYear() === year) // Filter by selected year
-    .forEach((order) => {
-      const orderDate = new Date(order.placed_at);
-      const month = orderDate.getMonth(); // Get month index (0 for Jan, 11 for Dec)
-      earningsByMonth[month] += order.total;
-    });
+      .filter((order) => new Date(order.placed_at).getFullYear() === year) // Filter by selected year
+      .forEach((order) => {
+        const orderDate = new Date(order.placed_at);
+        const month = orderDate.getMonth(); // Get month index (0 for Jan, 11 for Dec)
+        earningsByMonth[month] += order.total;
+      });
 
     setMonthlyEarnings(earningsByMonth);
     calculatePercentageChanges(earningsByMonth); // Calculate percentage changes after categorizing
@@ -69,7 +69,7 @@ const Earnings = () => {
 
   useEffect(() => {
     if (orders.length > 0) {
-      categorizeEarningsByMonth(orders, selectedYear);
+      categorizeEarnings(orders, selectedYear);
     }
   }, [orders, selectedYear]);
 
@@ -93,16 +93,59 @@ const Earnings = () => {
     ],
   };
 
-  // Mock pieData for demonstration
-  const pieData = {
-    labels: ['Product A', 'Product B', 'Product C'],
-    datasets: [
-      {
-        label: 'Profit',
-        data: [30, 50, 20],
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-      },
-    ],
+  const [pieData, setPieData] = useState({
+    labels: [],
+    datasets: [{ data: [], backgroundColor: [] }]
+  });
+  const [topProduct, setTopProduct] = useState({ name: '-', earnings: 0 });
+
+  // Categorize earnings by month and product
+  const categorizeEarnings = (orders, year) => {
+    const earningsByMonth = new Array(12).fill(0);
+    const productEarnings = {};
+
+    orders.forEach((order) => {
+      const orderDate = new Date(order.placed_at);
+      if (orderDate.getFullYear() === year) {
+        const month = orderDate.getMonth();
+        earningsByMonth[month] += parseFloat(order.total); // Ensure total is number
+
+        // Aggregate by product (assuming order.items exists and has product title)
+        if (order.items) {
+          order.items.forEach(item => {
+            const pName = item.product.title || `Product ${item.product.id}`;
+            const pTotal = parseFloat(item.unit_price) * item.quantity;
+            if (productEarnings[pName]) {
+              productEarnings[pName] += pTotal;
+            } else {
+              productEarnings[pName] = pTotal;
+            }
+          });
+        }
+      }
+    });
+
+    setMonthlyEarnings(earningsByMonth);
+    calculatePercentageChanges(earningsByMonth);
+
+    // Prepare Pie Data (Top 5 Products)
+    const sortedProducts = Object.entries(productEarnings).sort((a, b) => b[1] - a[1]);
+    const top5 = sortedProducts.slice(0, 5);
+
+    setPieData({
+      labels: top5.map(p => p[0]),
+      datasets: [{
+        label: 'Earnings',
+        data: top5.map(p => p[1]),
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+      }]
+    });
+
+    if (sortedProducts.length > 0) {
+      setTopProduct({ name: sortedProducts[0][0], earnings: sortedProducts[0][1] });
+    } else {
+      setTopProduct({ name: '-', earnings: 0 });
+    }
   };
 
   const chartOptions = {
@@ -173,8 +216,8 @@ const Earnings = () => {
 
       <Box flex="1" p="20px" overflowY="auto">
         <Heading mb="20px" color="#F47D31">Earnings Analytics</Heading>
-      {/* Year Selector */}
-      <Select width="150px" mb="4" value={selectedYear} onChange={handleYearChange}>
+        {/* Year Selector */}
+        <Select width="150px" mb="4" value={selectedYear} onChange={handleYearChange}>
           {[...Array(5)].map((_, i) => {
             const year = new Date().getFullYear() - i; // Show last 5 years
             return (
@@ -194,11 +237,11 @@ const Earnings = () => {
             </StatHelpText>
           </Stat>
           <Stat>
-            <StatLabel>Top Earning Category</StatLabel>
-            <StatNumber>Product B</StatNumber>
+            <StatLabel>Top Earning Product</StatLabel>
+            <StatNumber>{topProduct.name}</StatNumber>
             <StatHelpText>
               <StatArrow type="increase" />
-              Rs 20,000
+              Rs {topProduct.earnings.toFixed(2)}
             </StatHelpText>
           </Stat>
         </SimpleGrid>
