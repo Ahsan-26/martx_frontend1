@@ -21,7 +21,7 @@ const DashboardPage = () => {
     // }, [initializeCart, fetchProducts]);
 
     return (
-        <>  <BuyerSidebar /> 
+        <>  <BuyerSidebar />
             <Navbar />
             <Banner />
             <FeaturedCategories />
@@ -29,7 +29,7 @@ const DashboardPage = () => {
             <PromotionalBanner />
             {/* <Testimonials /> */}
             <VendorCard />
-          
+
             <NewsletterSignup />
             <ProductListing />
             <Footer />

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Button, FormControl, FormLabel, Input } from '@chakra-ui/react';
+import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Button, FormControl, FormLabel, Input, Box } from '@chakra-ui/react';
+import { countries } from '../data/countries';
 
 const GuestInfoModal = ({ isOpen, onClose, handleGuestSubmit }) => {
     const [guestInfo, setGuestInfo] = useState({
@@ -45,7 +46,22 @@ const GuestInfoModal = ({ isOpen, onClose, handleGuestSubmit }) => {
                     </FormControl>
                     <FormControl isRequired mt={4}>
                         <FormLabel>Country</FormLabel>
-                        <Input value={guestInfo.country} onChange={(e) => setGuestInfo({ ...guestInfo, country: e.target.value })} />
+                        <Box
+                            as="select"
+                            w="full"
+                            p={2}
+                            border="1px solid"
+                            borderColor="gray.200"
+                            borderRadius="md"
+                            bg="white"
+                            value={guestInfo.country}
+                            onChange={(e) => setGuestInfo({ ...guestInfo, country: e.target.value })}
+                        >
+                            <option value="">Select a country</option>
+                            {countries.map(c => (
+                                <option key={c.code} value={c.code}>{c.name}</option>
+                            ))}
+                        </Box>
                     </FormControl>
                     <FormControl isRequired mt={4}>
                         <FormLabel>Postal Code</FormLabel>

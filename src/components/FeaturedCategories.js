@@ -12,18 +12,15 @@ function FeaturedCategories() {
     const navigate = useNavigate(); // Initialize navigation hook
 
     const categoryImages = {
-        1: '/category-imgs/flowersCategory.jpeg',
-        2: '/category-imgs/groceryCategory.jpg',
+        1: '/category-imgs/Grocery.jpeg',
+        2: '/category-imgs/Electronics.jpeg',
         3: '/category-imgs/beautyCategory.jpg',
         4: '/category-imgs/cleaningCategory.avif',
-        5: '/category-imgs/stationaryCategory.jpg',
-        6: '/category-imgs/petsCategory.jpg',
-        7: '/category-imgs/bakingCategory.jpg',
-        8: '/category-imgs/spicesCategory.jpeg',
-        9: '/category-imgs/toys.jpg',
-        10: '/category-imgs/magazinesCategory.jpg',
-        // 11: '/category-imgs/automotiveCategory.jpg',
-        // 12: '/category-imgs/furnitureCategory.jpg',
+        5: '/category-imgs/Home.jpeg',
+        6: '/category-imgs/Sports.jpeg',
+        7: '/category-imgs/Toys.jpeg',
+        8: '/category-imgs/Stationary.jpeg'
+
     };
 
 
@@ -131,8 +128,8 @@ function FeaturedCategories() {
                             boxShadow="lg"
                         >
                             <Image
-                            src={categoryImages[category.id] || '/category-imgs/defaultCategory.jpg'} 
-                               // src={`/category-imgs/flowersCategory.jpg`} // Replace with real image if available in the response
+                                src={categoryImages[category.id] || '/category-imgs/defaultCategory.jpg'}
+                                // src={`/category-imgs/flowersCategory.jpg`} // Replace with real image if available in the response
                                 alt={category.title}
                                 width="100%"
                                 height="100%"

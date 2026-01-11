@@ -113,10 +113,10 @@ function ProductListing({ vendorId }) {
                             bg="gray.100"
                         >
                             <Box position="relative">
-  <Box position="absolute" right={0} marginLeft={30}>
-    <LikeProduct productId={product.id} />
-  </Box>
-</Box>
+                                <Box position="absolute" right={0} marginLeft={30}>
+                                    <LikeProduct productId={product.id} />
+                                </Box>
+                            </Box>
                             {product.images && product.images.length > 0 ? (
                                 <Image
                                     src={product.images[0].image}  // Display the first image

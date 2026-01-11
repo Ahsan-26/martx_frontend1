@@ -1,8 +1,8 @@
-import React from 'react';
 import {
     Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
-    FormControl, FormLabel, Input, Button
+    FormControl, FormLabel, Input, Button, Box
 } from '@chakra-ui/react';
+import { countries } from '../data/countries';
 
 const GuestCheckoutModal = ({ isModalOpen, onModalClose, guestInfo, setGuestInfo, handleGuestCheckout }) => {
     return (
@@ -42,10 +42,22 @@ const GuestCheckoutModal = ({ isModalOpen, onModalClose, guestInfo, setGuestInfo
                     </FormControl>
                     <FormControl isRequired mt={4}>
                         <FormLabel>Country</FormLabel>
-                        <Input
+                        <Box
+                            as="select"
+                            w="full"
+                            p={2}
+                            border="1px solid"
+                            borderColor="gray.200"
+                            borderRadius="md"
+                            bg="white"
                             value={guestInfo.country}
                             onChange={(e) => setGuestInfo({ ...guestInfo, country: e.target.value })}
-                        />
+                        >
+                            <option value="">Select a country</option>
+                            {countries.map(c => (
+                                <option key={c.code} value={c.code}>{c.name}</option>
+                            ))}
+                        </Box>
                     </FormControl>
                     <FormControl isRequired mt={4}>
                         <FormLabel>Postal Code</FormLabel>

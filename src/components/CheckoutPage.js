@@ -4,6 +4,7 @@ import { Box, VStack, Heading, FormControl, FormLabel, Input, Button, RadioGroup
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { useMutation } from '@tanstack/react-query';
 import { createOrder, createPaymentIntent } from '../services/checkoutService';
+import { countries } from '../data/countries';
 
 export default function CheckoutPage() {
     const [loading, setLoading] = useState(false);
@@ -135,7 +136,7 @@ export default function CheckoutPage() {
                             address: {
                                 line1: userInfo.address,
                                 city: userInfo.city,
-                                country: userInfo.country,
+                                country: userInfo.country, // Now accepts full name
                                 postal_code: userInfo.postal_code,
                             },
                         },
@@ -237,7 +238,24 @@ export default function CheckoutPage() {
 
                 <FormControl isRequired>
                     <FormLabel htmlFor="country">Country</FormLabel>
-                    <Input id="country" name="country" value={userInfo.country} onChange={handleInputChange} />
+                    <Box
+                        as="select"
+                        id="country"
+                        name="country"
+                        value={userInfo.country}
+                        onChange={handleInputChange}
+                        w="full"
+                        p={2}
+                        border="1px solid"
+                        borderColor="gray.200"
+                        borderRadius="md"
+                        bg="white"
+                    >
+                        <option value="">Select a country</option>
+                        {countries.map(c => (
+                            <option key={c.code} value={c.code}>{c.name}</option>
+                        ))}
+                    </Box>
                 </FormControl>
 
                 <FormControl isRequired>

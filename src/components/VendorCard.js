@@ -12,10 +12,12 @@ import {
     Icon,
     Grid,
     GridItem,
+    Badge,
 } from '@chakra-ui/react';
 import { FaStar } from 'react-icons/fa';
 import useVendorStore from '../stores/vendorStore';
-import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
+import { useNavigate } from 'react-router-dom';
+import Slider from 'react-slick';
 
 const VendorCard = () => {
     const fetchVendors = useVendorStore((state) => state.fetchVendors); // Fetching vendors from Zustand store
@@ -30,113 +32,167 @@ const VendorCard = () => {
     if (loading) return <Text>Loading...</Text>;
     if (error) return <Text>Error: {error}</Text>;
 
+    // Sort vendors by average_rating in descending order
+    const sortedVendors = [...vendors].sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0));
+
+    const settings = {
+        dots: true,
+        infinite: sortedVendors.length > 4,
+        speed: 500,
+        slidesToShow: 4,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 3000,
+        pauseOnHover: true,
+        arrows: false,
+        responsive: [
+            {
+                breakpoint: 1280,
+                settings: {
+                    slidesToShow: 3,
+                    infinite: sortedVendors.length > 3,
+                }
+            },
+            {
+                breakpoint: 992,
+                settings: {
+                    slidesToShow: 2,
+                    infinite: sortedVendors.length > 2,
+                }
+            },
+            {
+                breakpoint: 600,
+                settings: {
+                    slidesToShow: 1,
+                    infinite: sortedVendors.length > 1,
+                }
+            }
+        ]
+    };
+
     return (
-        <>
-            <Text fontSize="2xl" fontWeight="bold" mb={4}>Top Rated Seller's</Text>
+        <Box p={4} mt={8} overflow="hidden">
+            <Text fontSize="2xl" fontWeight="bold" mb={6} borderLeft="4px solid orange.400" pl={4}>
+                Top Sellers
+            </Text>
 
-            {/* Grid Layout to make the cards responsive */}
-            <Grid
-                templateColumns={{ base: "1fr", md: "repeat(3, 1fr)", lg: "repeat(4, 1fr)" }}
-                gap={4}
-                padding={4}
-                justifyContent="center"
-            >
-                {vendors.map((vendor) => (
-                    <GridItem key={vendor.id}>
-                        <Box
-                            p={4}
-                            maxWidth="280px"  // Narrowed card width
-                            borderWidth="1px"
-                            borderRadius="xl"
-                            overflow="hidden"
-                            boxShadow="lg"
-                            bgGradient="linear(to-r, #132063, #0A0E23)"
-                            color="white"
-                            position="relative"
-                            _hover={{ boxShadow: "2xl", transform: "translateY(-5px)" }}
-                            transition="transform 0.3s ease"
-                        >
-                            {/* Circular Rating Badge */}
-                            <Flex justifyContent="flex-end">
-                                <CircularProgress value={vendor.average_rating * 20} color="orange.400" size="45px" thickness="6px">
-                                    <CircularProgressLabel fontSize="lg" color="orange.400">
-                                        {vendor.average_rating.toFixed(1)}
-                                    </CircularProgressLabel>
-                                </CircularProgress>
-                            </Flex>
+            <Box mx={-2}>
+                <Slider {...settings}>
+                    {sortedVendors.map((vendor) => (
+                        <Box key={vendor.id} px={2} pb={6}>
+                            <Box
+                                p={5}
+                                borderWidth="1px"
+                                borderRadius="2xl"
+                                overflow="hidden"
+                                boxShadow="xl"
+                                bgGradient="linear(to-br, #132063, #0A0E23)"
+                                color="white"
+                                position="relative"
+                                _hover={{ boxShadow: "2xl", transform: "translateY(-8px)" }}
+                                transition="all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+                                minH="380px"
+                                display="flex"
+                                flexDirection="column"
+                                justifyContent="space-between"
+                            >
+                                {/* Circular Rating Badge */}
+                                <Flex justifyContent="flex-end" position="absolute" top={4} right={4}>
+                                    <CircularProgress
+                                        value={(vendor.average_rating || 0) * 20}
+                                        color="orange.400"
+                                        size="50px"
+                                        thickness="8px"
+                                        trackColor="whiteAlpha.200"
+                                    >
+                                        <CircularProgressLabel fontSize="sm" fontWeight="bold" color="orange.400">
+                                            {(vendor.average_rating || 0.0).toFixed(1)}
+                                        </CircularProgressLabel>
+                                    </CircularProgress>
+                                </Flex>
 
-                            {/* Avatar and Company Name */}
-                            <VStack spacing={4} align="center" mt={-8}>
-                                <Avatar
-                                    size="2xl"
-                                    name={vendor.name || 'companyName'}
-                                    src={vendor.images}
-                                    borderColor="orange.400"
-                                    borderWidth={2}
-                                    boxSize={{ base: "80px", md: "100px" }}  // Adjust size responsively
-                                />
-                                <Text fontSize="xl" fontWeight="bold" color="orange.200">
-                                    {vendor.shop_name || vendor.name || 'Vendor'}
-                                </Text>
-                            </VStack>
+                                {/* Avatar and Company Name */}
+                                <VStack spacing={4} align="center" mt={4}>
+                                    <Avatar
+                                        size="xl"
+                                        name={vendor.shop_name || vendor.name}
+                                        src={vendor.images && vendor.images.length > 0 ? vendor.images[0].image : null}
+                                        borderColor="orange.400"
+                                        borderWidth={3}
+                                        boxShadow="0 0 15px rgba(251, 146, 60, 0.3)"
+                                    />
+                                    <VStack spacing={1}>
+                                        <Text fontSize="lg" fontWeight="bold" color="white" textAlign="center" noOfLines={1}>
+                                            {vendor.shop_name || vendor.name}
+                                        </Text>
+                                        <Badge colorScheme="orange" variant="subtle" borderRadius="full" px={3}>
+                                            {vendor.average_rating >= 4.5 ? 'PREMIUM' : 'VERIFIED'}
+                                        </Badge>
+                                    </VStack>
+                                </VStack>
 
-                            {/* Top-Rated Label and Stars */}
-                            <Box mt={4} textAlign="center">
-                                <Text fontSize="md" fontWeight="bold" color="orange.300">
-                                    {vendor.average_rating >= 4.5 ? 'TOP-RATED' : 'SELLER'}
-                                </Text>
-                                <HStack justify="center" mt={2}>
-                                    {[...Array(5)].map((_, i) => (
-                                        <Icon
-                                            key={i}
-                                            as={FaStar}
-                                            color={i < Math.round(vendor.average_rating) ? "orange.400" : "gray.500"}
-                                            boxSize={4}
-                                        />
-                                    ))}
-                                </HStack>
-                            </Box>
+                                {/* Top-Rated Label and Stars */}
+                                <Box mt={4}>
+                                    <HStack justify="center" spacing={1}>
+                                        {[...Array(5)].map((_, i) => (
+                                            <Icon
+                                                key={i}
+                                                as={FaStar}
+                                                color={i < Math.round(vendor.average_rating || 0) ? "orange.400" : "whiteAlpha.300"}
+                                                boxSize={3.5}
+                                            />
+                                        ))}
+                                    </HStack>
+                                    <Text mt={3} fontSize="xs" color="gray.400" textAlign="center" noOfLines={2} px={2}>
+                                        {vendor.shop_description || 'Reliable seller quality products.'}
+                                    </Text>
+                                </Box>
 
-                            {/* Other Details */}
-                            <Box mt={4} textAlign="center">
-                                <Text fontSize="sm" color="gray.300" noOfLines={2}>
-                                    {vendor.shop_description || 'No description available'}
-                                </Text>
-                            </Box>
-
-                            {/* Visit Button */}
-                            <Flex justify="center" mt={6}>
+                                {/* Visit Button */}
                                 <Button
+                                    mt={6}
                                     colorScheme="orange"
                                     bg="orange.400"
+                                    _hover={{ bg: "orange.500", shadow: "lg" }}
                                     color="white"
-                                    borderRadius="full"
-                                    onClick={() => navigate(`/vendors/${vendor.id}/products`)}  // Navigate to vendor's product page
-                                    _hover={{ bg: "orange.500" }}
+                                    borderRadius="xl"
+                                    size="md"
+                                    w="full"
+                                    onClick={() => navigate(`/vendors/${vendor.id}/products`)}
+                                    boxShadow="md"
                                 >
-                                    Visit Vendor
+                                    View Store
                                 </Button>
-                            </Flex>
 
-                            {/* Bottom Right Design Element */}
-                            <Box position="absolute" bottom={2} right={2}>
+                                {/* Subtle background design */}
                                 <Box
-                                    width="40px"
-                                    height="2px"
-                                    bg="orange.400"
-                                    mb="2px"
-                                />
-                                <Box
-                                    width="30px"
-                                    height="2px"
-                                    bg="orange.200"
+                                    position="absolute"
+                                    bottom={-5}
+                                    left={-5}
+                                    w="60px"
+                                    h="60px"
+                                    bg="whiteAlpha.100"
+                                    borderRadius="full"
+                                    filter="blur(20px)"
                                 />
                             </Box>
                         </Box>
-                    </GridItem>
-                ))}
-            </Grid>
-        </>
+                    ))}
+                </Slider>
+            </Box>
+
+            <style jsx global>{`
+                .slick-dots li button:before {
+                    color: orange !important;
+                }
+                .slick-dots li.slick-active button:before {
+                    color: #F47D31 !important;
+                }
+                .slick-list {
+                    margin: 0 -10px;
+                }
+            `}</style>
+        </Box>
     );
 };
 
