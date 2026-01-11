@@ -51,6 +51,7 @@ import VendorListingPage from './pages/VendorListingPage';
 import VendorSales from './components/seller/VendorSales'
 import ProfilePopover from './components/ProfilePopover';
 import SellerSignup from './components/seller/SellerSignup';
+import SellerProtectedRoute from './components/seller/SellerProtectedRoute';
 
 
 
@@ -115,13 +116,15 @@ function App() {
             <Route path="/activate/:uid/:token" element={<ActivationPage />} />
             <Route path="/auth" element={<AuthComponent />} />
 
-            {/* Seller Dashboard Routes with Layout */}
-            <Route path="/MainSellerPage" element={<MainSellerPage />}>
-              <Route index element={<SellerDashboard />} />
-              <Route path="manage-inventory" element={<ManageInventory />} />
-              <Route path="earnings" element={<Earnings />} />
-              <Route path="vendor-orders" element={<VendorOrders />} />
-              <Route path="vendorsales" element={<VendorSales />} />
+            {/* Seller Dashboard Routes with Protection */}
+            <Route element={<SellerProtectedRoute />}>
+              <Route path="/MainSellerPage" element={<MainSellerPage />}>
+                <Route index element={<SellerDashboard />} />
+                <Route path="manage-inventory" element={<ManageInventory />} />
+                <Route path="earnings" element={<Earnings />} />
+                <Route path="vendor-orders" element={<VendorOrders />} />
+                <Route path="vendorsales" element={<VendorSales />} />
+              </Route>
             </Route>
 
             <Route path="/sidebar" element={<Sidebar />} />
@@ -129,7 +132,7 @@ function App() {
         </Router>
       </Elements>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} closeOnClick pauseOnHover />
-    </QueryClientProvider>
+    </QueryClientProvider >
   );
 }
 

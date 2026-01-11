@@ -2,7 +2,7 @@
 import React from 'react';
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter,
-  Input, Select, Button
+  Input, Select, Button, Box, Text, Flex
 } from '@chakra-ui/react';
 import api from '../../services/authInterceptor';
 import { useState } from 'react';
@@ -131,9 +131,13 @@ const AddProductModal = ({
           </Select>
           <Input
             type="file"
+            id="product-image-input"
             accept="image/*"
             multiple
-            onChange={(e) => handleImageUpload(e.target.files)}
+            onChange={(e) => {
+              handleImageUpload(e.target.files);
+              e.target.value = ''; // Reset input to allow re-selecting same files
+            }}
             mb="10px"
             bg="white"
             color="black"
@@ -141,6 +145,40 @@ const AddProductModal = ({
               paddingTop: "4px"
             }}
           />
+          {newProduct.images && newProduct.images.length > 0 && (
+            <Box mb="10px" p="5px" border="1px solid gray" borderRadius="md">
+              <Text fontSize="xs" color="gray.400" mb="2">Selected Images ({newProduct.images.length}):</Text>
+              <Flex wrap="wrap" gap="2">
+                {newProduct.images.map((file, index) => (
+                  <Box key={index} position="relative" w="50px" h="50px" border="1px solid #F47D31" borderRadius="sm">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt="preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <Button
+                      size="xs"
+                      position="absolute"
+                      top="-5px"
+                      right="-5px"
+                      colorScheme="red"
+                      borderRadius="full"
+                      w="16px"
+                      h="16px"
+                      p="0"
+                      onClick={() => {
+                        const updatedImages = [...newProduct.images];
+                        updatedImages.splice(index, 1);
+                        handleInputChange({ target: { name: 'images', value: updatedImages } });
+                      }}
+                    >
+                      ×
+                    </Button>
+                  </Box>
+                ))}
+              </Flex>
+            </Box>
+          )}
           {/* Add Tag Input */}
           <Input
             name="tags"

@@ -38,12 +38,21 @@ function ProductListing({ vendorId }) {
         fetchCategories();
     }, [fetchCategories]);
 
+    const urlSortBy = searchParams.get('sortBy');
+
     // Sync URL categoryId with FilterStore's collectionId
     useEffect(() => {
         if (urlCategoryId) {
             setCollectionId(urlCategoryId);
         }
     }, [urlCategoryId, setCollectionId]);
+
+    // Sync URL sortBy with FilterStore's sortBy
+    useEffect(() => {
+        if (urlSortBy) {
+            setSortBy(urlSortBy);
+        }
+    }, [urlSortBy, setSortBy]);
 
     // Main fetch effect
     useEffect(() => {

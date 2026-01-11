@@ -2,8 +2,10 @@ import React from 'react';
 import Slider from 'react-slick';
 import { Box, Heading, Text, Button } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 function Banner() {
+    const navigate = useNavigate();
     const MotionBox = motion(Box);
 
     const settings = {
@@ -23,20 +25,27 @@ function Banner() {
             heading: "Summer Spectacular!",
             text: "Up to 50% off on all beachwear. Dive into savings today!",
             button: "Shop the Sale",
+            collectionId: 8, // Books & Stationery (as requested)
         },
         {
             image: "/banner-imgs/banner2.jpeg",
             heading: "Just In: Fresh Finds",
             text: "Explore the latest trends in fashion and tech.",
             button: "See What's New",
+            collectionId: 3, // Fashion
         },
         {
             image: "/banner-imgs/banner3.jpeg",
             heading: "Mega Savings Event!",
             text: "Exclusive deals on best-selling products. Limited time only!",
             button: "Grab the Deals",
+            collectionId: 3, // Fashion
         },
     ];
+
+    const handleButtonClick = (collectionId) => {
+        navigate(`/products?category=${collectionId}`);
+    };
 
     return (
         <Box mt="0" pt="0"> {/* Removed margin and padding to align perfectly with the navbar */}
@@ -77,6 +86,7 @@ function Banner() {
                                     bg="#F47D31"
                                     _hover={{ bg: "#e36625" }}
                                     borderRadius="full"
+                                    onClick={() => handleButtonClick(slide.collectionId)}
                                 >
                                     {slide.button}
                                 </Button>

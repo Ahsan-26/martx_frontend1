@@ -2,18 +2,14 @@ import axios from 'axios';
 import api from './authInterceptor'; // Importing the authenticated API
 const API_BASE_URL = 'http://127.0.0.1:8000/store/products';
 
-// For GET requests, use axios directly
+// For GET requests, use api for authenticated calls
 export const getProducts = async (url) => {
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error("Failed to fetch products");
-    }
-    const data = await response.json();
-    return data;
+    const response = await api.get(url);
+    return response.data;
   } catch (error) {
     console.error("Error fetching products:", error);
-    return [];
+    return { results: [] };
   }
 };
 

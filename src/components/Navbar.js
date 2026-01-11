@@ -64,7 +64,7 @@ function Navbar() {
     };
 
     return (
-        <Box boxShadow='md' as="nav" bg="#FFFFFF" p={4} borderBottom="4px" borderColor="#0A0E27" mb={0}>
+        <Box boxShadow='md' as="nav" bg="#FFFFFF" p={4} borderBottom="4px" borderColor="#0A0E27" mb={0} position="sticky" top="0" zIndex="1000">
             <Flex align="center" justify="space-between" maxW="1200px" mx="auto" flexWrap="wrap">
                 <BuyerSidebar />
                 {/* Logo */}
@@ -79,7 +79,6 @@ function Navbar() {
 
                 {/* Cart & Profile Icons */}
                 <Flex align="center">
-                    <CurrencySelector />
                     {/* Profile Icon */}
                     <IconButton
                         ref={profileButtonRef} // Set the ref here

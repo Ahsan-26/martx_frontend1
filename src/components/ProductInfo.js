@@ -7,8 +7,6 @@ import { useToast } from '@chakra-ui/react';  // Import toast for notifications
 import GuestInfoModal from '../components/GuestInfoModal';  // Assume you have this modal for guest info
 
 const ProductInfo = ({ product }) => {
-    const [size, setSize] = useState('');
-    const [color, setColor] = useState('');
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(false);
     const [isGuestCheckout, setIsGuestCheckout] = useState(false);  // Track guest checkout flow
@@ -62,7 +60,7 @@ const ProductInfo = ({ product }) => {
 
         // Redirect to the checkout page with the product ID and quantity as parameters
         navigate(`/checkout`, { state: { productId: product.id, quantity } });
-    
+
 
         // Authenticated flow
         // try {
@@ -133,17 +131,6 @@ const ProductInfo = ({ product }) => {
             <Text fontSize="lg" color="gray.600" mb={4}>Price: Rs {product.price_with_tax.toFixed(2)}</Text>
             <Text fontSize="md" color="gray.600" mb={4}>{product.description}</Text>
 
-            {/* Additional product fields like size, color */}
-            <Select placeholder="Select Size" mb={3} onChange={(e) => setSize(e.target.value)}>
-                <option value="size8">Size 8</option>
-                <option value="size9">Size 9</option>
-                <option value="size10">Size 10</option>
-            </Select>
-
-            <Select placeholder="Select Color" mb={3} onChange={(e) => setColor(e.target.value)}>
-                <option value="white">White</option>
-                <option value="black">Black</option>
-            </Select>
 
             <Flex gap={4} alignItems="center" mb={4}>
                 <Text fontWeight="bold">Quantity:</Text>

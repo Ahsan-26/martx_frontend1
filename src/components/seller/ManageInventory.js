@@ -16,11 +16,10 @@ const ManageInventory = () => {
     title: '',
     description: '',
     slug: '',
-    inventory: null,
-    unit_price: null,
-    collection: null,
-    image: null,
-    images: null,
+    inventory: '',
+    unit_price: '',
+    collection: '',
+    images: [], // Ensure this is an array
   });
   const [nextPage, setNextPage] = useState(null);
   const [previousPage, setPreviousPage] = useState(null);
@@ -29,18 +28,13 @@ const ManageInventory = () => {
   const [tagInputs, setTagInputs] = useState({});
 
   // Fetch data including pagination info
-  // Fetch data including pagination info
-  const fetchData = async (url = 'http://127.0.0.1:8000/store/products') => {
+  const fetchData = async (url = 'http://127.0.0.1:8000/store/products/?vendor=me') => {
     try {
       const products = await getProducts(url);
-      // Ensure products and products.results are valid before setting state
       if (products && products.results) {
         setInventoryItems(products.results);
         setNextPage(products.next);
         setPreviousPage(products.previous);
-      } else {
-        console.warn("fetchData received invalid data:", products);
-        // setInventoryItems([]); // Optional: clear items or keep previous?
       }
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -48,18 +42,6 @@ const ManageInventory = () => {
   };
 
   useEffect(() => {
-    async function fetchData(url = 'http://127.0.0.1:8000/store/products') { // Set the default URL
-      try {
-        const products = await getProducts(url); // Pass the URL to the function
-        setInventoryItems(products.results);
-        setNextPage(products.next); // Set the next page URL
-        setPreviousPage(products.previous); // Set the previous page URL
-        console.log(products);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    }
-
     fetchData();
   }, []);
 
@@ -93,20 +75,21 @@ const ManageInventory = () => {
       title: '',
       description: '',
       slug: '',
-      inventory: null,
-      unit_price: null,
-      collection: null,
-      image: null,
+      inventory: '',
+      unit_price: '',
+      collection: '',
+      images: [],
     });
     setEditingProductId(null);
     onClose();
   };
 
   const handleImageUpload = (files) => {
-    setNewProduct({
-      ...newProduct,
-      images: files,
-    });
+    const fileArray = Array.from(files);
+    setNewProduct(prev => ({
+      ...prev,
+      images: [...(prev.images || []), ...fileArray],
+    }));
   };
 
   const handleEditProduct = (product) => {
@@ -117,7 +100,7 @@ const ManageInventory = () => {
       inventory: product.inventory,
       unit_price: product.unit_price,
       collection: product.collection,
-      image: product.image,
+      images: [], // Reset images for new uploads while editing
     });
     setEditingProductId(product.id);
     onOpen();

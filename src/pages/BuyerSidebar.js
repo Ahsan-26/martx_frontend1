@@ -16,11 +16,11 @@ import {
   Collapse,
 } from '@chakra-ui/react';
 import { HamburgerIcon, ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
-import { 
-  AiOutlineFire, 
-  AiOutlineShoppingCart, 
-  AiOutlineUser, 
-  AiOutlineHome, 
+import {
+  AiOutlineFire,
+  AiOutlineShoppingCart,
+  AiOutlineUser,
+  AiOutlineHome,
   AiOutlineHeart // Added Heart Icon for Wishlist 
 } from 'react-icons/ai';
 import { FiTrendingUp, FiPackage, FiStar, FiBell, FiLogIn, FiMail, FiPhone } from 'react-icons/fi';
@@ -74,7 +74,7 @@ const BuyerSidebar = () => {
               </HStack>
 
               {/* Latest Products */}
-              <HStack _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={2} onClick={() => navigate('/products', { state: { preSelectSort: 'last_update' } })}>
+              <HStack _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={2} onClick={() => { navigate('/products?sortBy=last_update'); onClose(); }}>
                 <AiOutlineFire />
                 <Text>Latest Products</Text>
               </HStack>
@@ -97,13 +97,13 @@ const BuyerSidebar = () => {
               </HStack>
               <Collapse in={isCategoriesOpen}>
                 <VStack align="start" pl={4}>
-                  <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1}>
+                  <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1} onClick={() => { navigate('/products?category=2'); onClose(); }}>
                     Electronics
                   </Text>
-                  <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1}>
+                  <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1} onClick={() => { navigate('/products?category=3'); onClose(); }}>
                     Fashion
                   </Text>
-                  <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1}>
+                  <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1} onClick={() => { navigate('/products?category=5'); onClose(); }}>
                     Home Appliances
                   </Text>
                   <HStack
@@ -118,10 +118,10 @@ const BuyerSidebar = () => {
                   </HStack>
                   <Collapse in={isSeeAllOpen}>
                     <VStack align="start" pl={4}>
-                      <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1}>
+                      <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1} onClick={() => { navigate('/products?category=4'); onClose(); }}>
                         Beauty
                       </Text>
-                      <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1}>
+                      <Text _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={1} onClick={() => { navigate('/products?category=6'); onClose(); }}>
                         Sports
                       </Text>
                     </VStack>
@@ -142,15 +142,6 @@ const BuyerSidebar = () => {
                 <Text>Track Order</Text>
               </HStack>
 
-              <HStack _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={2}>
-                <FiStar />
-                <Text>Ratings & Reviews</Text>
-              </HStack>
-
-              <HStack _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={2}>
-                <FiBell />
-                <Text>Notifications & Updates</Text>
-              </HStack>
 
               <HStack _hover={{ color: '#F47D31' }} cursor="pointer" w="full" py={2} onClick={() => navigate('/profile')}>
                 <AiOutlineUser />
