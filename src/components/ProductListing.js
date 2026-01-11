@@ -31,143 +31,75 @@ function ProductListing({ vendorId }) {
     const [pagination, setPagination] = useState({ next: null, previous: null });
 
     const [searchParams] = useSearchParams();
-    const categoryId = searchParams.get('category');
-    console.log('Category id', categoryId)
-    const [initialLoad, setInitialLoad] = useState(true);  // Track initial load
-    const isInitialRender = useRef(true);
+    const urlCategoryId = searchParams.get('category');
+
+    // Fetch categories once on mount
     useEffect(() => {
-        if (initialLoad && location.state?.preSelectSort) {
-            setSortBy(location.state.preSelectSort);
-            setInitialLoad(false);
+        fetchCategories();
+    }, [fetchCategories]);
+
+    // Sync URL categoryId with FilterStore's collectionId
+    useEffect(() => {
+        if (urlCategoryId) {
+            setCollectionId(urlCategoryId);
         }
+    }, [urlCategoryId, setCollectionId]);
 
-
-    }, [location.state, setSortBy, initialLoad]);
-
+    // Main fetch effect
     useEffect(() => {
-        fetchCategories(); // Fetch categories on mount
-    }, []);
-
-    useEffect(() => {
-        if (!initialLoad) {
-            fetchProducts();  // Fetch products after initial sort is set
-        }
-    }, [query, collectionId, minPrice, maxPrice, sortBy, categoryId]);
-
-
-    useEffect(() => {
-        if (isInitialRender.current) {
-            if (categoryId && collectionId !== categoryId) {
-                setCollectionId(categoryId); // Set collectionId only if it differs from categoryId
+        const fetchAll = async () => {
+            if (query) {
+                debouncedSearch(query);
+            } else {
+                await fetchProducts();
             }
-            isInitialRender.current = false; // Mark as no longer the initial render
-        }
-    }, [categoryId, collectionId, setCollectionId]);
-
-    useEffect(() => {
-        // Re-fetch products when sortBy changes
-        if (sortBy) {
-            fetchProducts();
-        }
-    }, [sortBy, collectionId, categoryId]);
-    useEffect(() => {
-        if (initialLoad) {
-            if (location.state?.preSelectSort) {
-                setSortBy(location.state.preSelectSort);
-            }
-            fetchProducts(); // Ensure fetch happens after initial sort is set
-            setInitialLoad(false); // Mark initial load as handled
-        }
-    }, [location.state, setSortBy, initialLoad, collectionId]);
-    // Debounced search function for query
-
-    // New useEffect for syncing categoryId with selectedCollectionId
-    // Dependency array now includes collectionId
-
-    const debouncedSearch = useCallback(
-        debounce(async (searchTerm) => {
-            try {
-                setLoading(true);
-                const params = getQueryParams(searchTerm);
-                const { data } = await axios.get(`http://127.0.0.1:8000/store/products/`, { params });
-                setProducts(data.results || []);
-                setPagination({ next: data.next, previous: data.previous });
-                console.log('Fetching with params:', params);
-            } catch (error) {
-                setError('Failed to load products.');
-            } finally {
-                setLoading(false);
-            }
-        }, 800),  // 800ms debounce for search
-        [collectionId, minPrice, maxPrice, sortBy]
-    );
-
-    // Debounced functions for min and max price
-    const debouncedMinPrice = useCallback(
-        debounce((value) => setMinPrice(value), 3000), // 800ms debounce for min price
-        []
-    );
-
-    const debouncedMaxPrice = useCallback(
-        debounce((value) => setMaxPrice(value), 3000), // 800ms debounce for max price
-        []
-    );
-
-    useEffect(() => {
-        if (query) {
-            debouncedSearch(query);  // Trigger debounced search
-        } else {
-            fetchProducts();  // Fetch products without search term
-        }
-        return () => {
-            debouncedSearch.cancel();  // Clean up debounce on unmount
         };
-    }, [query, collectionId, minPrice, maxPrice, sortBy, debouncedSearch, setCollectionId]);
 
-    useEffect(() => {
-        if (categoryId) {
-            fetchProducts()
-        }
-    }, [categoryId])
+        fetchAll();
 
-    // Fetch products based on filters and search term
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [query, collectionId, minPrice, maxPrice, sortBy, vendorId, urlCategoryId]);
+
+    // Consolidated Fetch function
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const params = getQueryParams(query);
+            const params = {
+                search: query,
+                collection_id: collectionId || urlCategoryId,
+                unit_price__gt: minPrice,
+                unit_price__lt: maxPrice,
+                ordering: sortBy,
+                vendor_id: vendorId
+            };
 
             const { data } = await axios.get(`http://127.0.0.1:8000/store/products/`, { params });
             setProducts(data.results || []);
             setPagination({ next: data.next, previous: data.previous });
+            setError(null);
         } catch (error) {
+            console.error('Fetch error:', error);
             setError('Failed to load products.');
         } finally {
             setLoading(false);
         }
     };
+
+    const debouncedSearch = useCallback(
+        debounce(async (searchTerm) => {
+            fetchProducts();
+        }, 800),
+        [collectionId, minPrice, maxPrice, sortBy, vendorId, urlCategoryId]
+    );
 
     const handleCardClick = (productId) => {
         navigate(`/product/${productId}`);
     };
 
-    // Handle pagination
-    const handlePagination = async (url) => {
-        try {
-            setLoading(true);
-            const { data } = await axios.get(url);
-            setProducts(data.results || []);
-            setPagination({ next: data.next, previous: data.previous });
-        } catch (error) {
-            setError('Failed to load products.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Handle adding a product to the cart
     const handleAddToCart = (product) => {
         const existingItem = cartItems.find(item => item.product.id === product.id);
-
         if (existingItem) {
             toast.info(`"${product.title}" is already in the cart!`);
         } else {
@@ -182,24 +114,18 @@ function ProductListing({ vendorId }) {
         }
     };
 
-    // Display error message if there's an error
-    if (error) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <Text color="red.500">Failed to load products. Please try again later.</Text>
-            </Box>
-        );
-    }
-
-    // Prepare params helper
-    const getQueryParams = (searchTerm) => ({
-        search: searchTerm,
-        collection_id: collectionId,
-        unit_price__gt: minPrice,
-        unit_price__lt: maxPrice,
-        ordering: sortBy,
-        vendor_id: vendorId // Filter by vendor if vendorId is present
-    });
+    const handlePagination = async (url) => {
+        try {
+            setLoading(true);
+            const { data } = await axios.get(url);
+            setProducts(data.results || []);
+            setPagination({ next: data.next, previous: data.previous });
+        } catch (error) {
+            setError('Failed to load products.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // If no products are found
     if (!products || products.length === 0) {
@@ -214,7 +140,8 @@ function ProductListing({ vendorId }) {
                     setMinPrice('');
                     setMaxPrice('');
                     setSortBy('');
-
+                    navigate('/products', { replace: true }); // Clear search params
+                    fetchProducts(); // Manually trigger after clear
                 }}>Clear Filters</Button>
             </Box>
         );
@@ -224,18 +151,8 @@ function ProductListing({ vendorId }) {
     return (
 
         <Box p={4} mt={0}>
-            {/* <IconButton
-                    icon={<FaArrowLeft />}
-                    aria-label="Back"
-                    onClick={handleBackClick}
-                    colorScheme="orange"
-                    bg={"#f47d31"}
-                    variant="solid"
-                    mr={2}
-                    mt={0}
-                /> */}
             <Text fontSize="2xl" mb={4} fontWeight="bold">
-                {vendorId ? 'Vendor Products' : 'Featured Products'}
+                {vendorId ? 'Vendor Products' : collectionId ? categories.find(c => c.id == collectionId)?.title : 'Featured Products'}
             </Text>
 
             {/* Horizontal Search, Sorting, and Filters */}

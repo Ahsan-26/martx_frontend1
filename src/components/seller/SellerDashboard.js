@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, SimpleGrid, Text, Heading, Flex, Button, Icon, Grid, GridItem } from '@chakra-ui/react';
+import { Box, SimpleGrid, Text, Heading, Flex, Button, Icon, Grid, GridItem, Table, Thead, Tbody, Tr, Th, Td, Badge } from '@chakra-ui/react';
 import { FaDollarSign, FaShoppingCart } from 'react-icons/fa';
 import MonthlyStatsBarChart from './MonthlyStatsBarChart';
 import Ordersdetails from './VendorOrders'; // Corrected import
@@ -11,22 +11,32 @@ import useVendorOrderStore from '../../stores/vendorOrderStore'; // Import store
 const SellerDashboard = () => {
   const navigate = useNavigate();
   const { orders, fetchVendorOrders } = useVendorOrderStore(); // Get orders from the store
-  const [totalSales, setTotalSales] = useState(0); // State to store total sales
+  const [totalSales, setTotalSales] = useState(0);
+  const [totalProductsSold, setTotalProductsSold] = useState(0);
 
   useEffect(() => {
-    if (orders.length === 0) {
-      fetchVendorOrders(); // Fetch orders if not already fetched
-    } else {
-      calculateTotalSales(orders); // Calculate total sales
-    }
-  }, [orders, fetchVendorOrders]);
+    fetchVendorOrders();
+  }, [fetchVendorOrders]);
 
-  const calculateTotalSales = (orders) => {
-    let total = 0;
+  useEffect(() => {
+    if (orders.length > 0) {
+      calculateStats(orders);
+    }
+  }, [orders]);
+
+  const calculateStats = (orders) => {
+    let sales = 0;
+    let products = 0;
     orders.forEach((order) => {
-      total += order.total || 0; // Summing up order totals
+      sales += parseFloat(order.total) || 0;
+      if (order.items) {
+        order.items.forEach(item => {
+          products += item.quantity;
+        });
+      }
     });
-    setTotalSales(total);
+    setTotalSales(sales);
+    setTotalProductsSold(products);
   };
 
   const handleSwitchToBuyer = () => {
@@ -45,9 +55,8 @@ const SellerDashboard = () => {
         </Button>
       </Flex>
 
-      {/* Total Sales and Orders Boxes with Line Chart */}
+      {/* Total Sales and Orders Boxes */}
       <SimpleGrid columns={3} spacing="20px" mb="20px">
-        {/* Updated Total Sales Box */}
         <Box
           bg="white"
           p="15px"
@@ -59,10 +68,10 @@ const SellerDashboard = () => {
           width="100%"
           height="150px"
           cursor="pointer"
-          onClick={() => navigate('/vendorsales')} // Navigate to /vendorsales
+          onClick={() => navigate('/vendorsales')}
         >
           <Icon as={FaDollarSign} w={6} h={6} color="#F47D31" mb="2" />
-          <Heading size="lg" mb="2" color="#0A0E23">Total Sales</Heading>
+          <Heading size="lg" mb="2" color="#0A0E23">Total Earnings</Heading>
           <Text fontSize="l" color="#F47D31">Rs {totalSales.toFixed(2)}</Text>
         </Box>
 
@@ -81,7 +90,7 @@ const SellerDashboard = () => {
         >
           <Icon as={FaShoppingCart} w={6} h={6} color="#F47D31" mb="2" />
           <Heading size="lg" mb="2" color="#0A0E23">Orders</Heading>
-          <Text fontSize="xl" color="#F47D31">152</Text>
+          <Text fontSize="xl" color="#F47D31">{orders.length}</Text>
         </Box>
 
         <Box
@@ -89,12 +98,15 @@ const SellerDashboard = () => {
           p="15px"
           borderRadius="md"
           boxShadow="md"
+          textAlign="center"
           borderWidth="1px"
           borderColor="gray.200"
           width="100%"
           height="150px"
         >
-          <DailySalesLineChart />
+          <Icon as={FaShoppingCart} w={6} h={6} color="#F47D31" mb="2" />
+          <Heading size="lg" mb="2" color="#0A0E23">Total Sold</Heading>
+          <Text fontSize="xl" color="#F47D31">{totalProductsSold}</Text>
         </Box>
       </SimpleGrid>
 
@@ -118,6 +130,41 @@ const SellerDashboard = () => {
           </Box>
         </GridItem>
       </Grid>
+
+      {/* Recent Orders Section */}
+      <Box mt="20px" bg="white" p="20px" borderRadius="md" boxShadow="md" color="#0A0E23">
+        <Heading size="md" mb="4">Recent Orders</Heading>
+        {orders.length === 0 ? (
+          <Text>No orders yet.</Text>
+        ) : (
+          <Box overflowX="auto">
+            <Table variant="simple" size="sm">
+              <Thead>
+                <Tr>
+                  <Th>Order ID</Th>
+                  <Th>Customer</Th>
+                  <Th>Amount</Th>
+                  <Th>Status</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {orders.slice(0, 5).map((order) => (
+                  <Tr key={order.id}>
+                    <Td>{order.id}</Td>
+                    <Td>{order.buyer_name}</Td>
+                    <Td>Rs {parseFloat(order.total).toFixed(2)}</Td>
+                    <Td>
+                      <Badge colorScheme={order.payment_status === 'Complete' ? 'green' : 'yellow'}>
+                        {order.payment_status}
+                      </Badge>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };

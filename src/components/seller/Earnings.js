@@ -113,7 +113,7 @@ const Earnings = () => {
         // Aggregate by product (assuming order.items exists and has product title)
         if (order.items) {
           order.items.forEach(item => {
-            const pName = item.product.title || `Product ${item.product.id}`;
+            const pName = item.product_title || `Product ${item.id}`;
             const pTotal = parseFloat(item.unit_price) * item.quantity;
             if (productEarnings[pName]) {
               productEarnings[pName] += pTotal;

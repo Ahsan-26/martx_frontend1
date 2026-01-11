@@ -118,15 +118,15 @@ const Ordersdetails = () => {
 
         doc.setFontSize(12);
         doc.text(`Order ID: ${order.id}`, 20, 40);
-        doc.text(`Customer: ${order.customer}`, 20, 50);
+        doc.text(`Customer: ${order.buyer_name} (${order.buyer_email})`, 20, 50);
         doc.text(`Placed At: ${new Date(order.placed_at).toLocaleString()}`, 20, 60);
         doc.text(`Total Items: ${order.items.length}`, 20, 70);
-        doc.text(`Total Amount: Rs ${order.total?.toFixed(2)}`, 20, 80);
+        doc.text(`Total Amount: Rs ${parseFloat(order.total).toFixed(2)}`, 20, 80);
 
         doc.text('Items:', 20, 100);
         order.items.forEach((item, index) => {
             const yPos = 110 + index * 10;
-            doc.text(`- ${item.product.title} (Qty: ${item.quantity}, Unit Price: Rs ${item.unit_price})`, 20, yPos);
+            doc.text(`- ${item.product_title} (Qty: ${item.quantity}, Unit Price: Rs ${item.unit_price})`, 20, yPos);
         });
 
         // Save PDF
@@ -166,7 +166,7 @@ const Ordersdetails = () => {
                     {filteredOrders.map((order) => (
                         <Tr key={order.id}>
                             <Td>{order.id}</Td>
-                            <Td>{order.customer}</Td>
+                            <Td>{order.buyer_name}</Td>
                             <Td>{new Date(order.placed_at).toLocaleString()}</Td>
                             <Td>
                                 <Popover>
@@ -187,15 +187,15 @@ const Ordersdetails = () => {
                                         </PopoverHeader>
                                         <PopoverBody>
                                             <Text><strong>Order ID:</strong> {order.id}</Text>
-                                            <Text><strong>Customer:</strong> {order.customer}</Text>
+                                            <Text><strong>Customer:</strong> {order.buyer_name} ({order.buyer_email})</Text>
                                             <Text><strong>Placed At:</strong> {new Date(order.placed_at).toLocaleString()}</Text>
                                             <Text><strong>Total Items:</strong> {order.items.length}</Text>
-                                            <Text><strong>Total Amount:</strong> Rs {order.total?.toFixed(2)}</Text>
+                                            <Text><strong>Total Amount:</strong> Rs {parseFloat(order.total).toFixed(2)}</Text>
 
                                             <List spacing={2} mt={4}>
                                                 {order.items.map((item, index) => (
                                                     <ListItem key={index}>
-                                                        <Text><strong>Product:</strong> {item.product.title}</Text>
+                                                        <Text><strong>Product:</strong> {item.product_title}</Text>
                                                         <Text><strong>Quantity:</strong> {item.quantity}</Text>
                                                         <Text><strong>Unit Price:</strong> Rs {item.unit_price}</Text>
                                                     </ListItem>

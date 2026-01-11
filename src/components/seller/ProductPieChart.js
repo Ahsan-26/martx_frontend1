@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pie } from 'react-chartjs-2'; 
+import { Pie } from 'react-chartjs-2';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import api from '../../services/authInterceptor'; // Assuming you're using an API interceptor
 
@@ -8,12 +8,14 @@ const VendorProductsPieChart = () => {
 
   // Fetch products of the specific vendor
   const getVendorProducts = async () => {
-    const vendorId = localStorage.getItem('vendorId'); // Retrieve the vendorId from localStorage
     try {
+      // First get the vendor's own profile to get the correct ID
+      const vendorResponse = await api.get('/store/vendors/me/');
+      const vendorId = vendorResponse.data.id;
       const response = await api.get(`/store/vendors/${vendorId}/products/`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching products for vendor ${vendorId}:`, error);
+      console.error(`Error fetching products for vendor:`, error);
       return [];
     }
   };
@@ -39,7 +41,7 @@ const VendorProductsPieChart = () => {
       const productInventories = products.map(product => product.inventory);
 
       setPieData({
-        labels: productTitles, 
+        labels: productTitles,
         datasets: [
           {
             label: 'Product Remaining',
@@ -70,11 +72,11 @@ const VendorProductsPieChart = () => {
   return (
     <div>
       <h2>Vendor Products</h2>
-      <Pie 
-        data={pieData} 
+      <Pie
+        data={pieData}
         options={{
           onClick: handleClick, // Attach click handler to the pie chart
-        }} 
+        }}
       />
     </div>
   );
