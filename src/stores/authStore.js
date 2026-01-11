@@ -14,7 +14,7 @@ const useAuthStore = create((set) => ({
     login: async (credentials) => {
         try {
             let newCredentials = {
-                username: credentials.email,
+                email: credentials.email,
                 password: credentials.password
             }
             // Login and get tokens
@@ -44,6 +44,45 @@ const useAuthStore = create((set) => ({
         }
     },
 
+    // Action to signup
+    signup: async (userData) => {
+        try {
+            const payload = {
+                username: userData.username,
+                email: userData.email,
+                password: userData.password,
+            };
+            await axios.post('http://127.0.0.1:8000/auth/signup/', payload);
+            return true;
+        } catch (error) {
+            console.error('Signup error:', error);
+            throw error; // Re-throw to handle in component
+        }
+    },
+
+    // Action to verify OTP
+    verifyOtp: async (email, otpCode) => {
+        try {
+            const response = await axios.post('http://127.0.0.1:8000/auth/verify-otp/', { email, otp_code: otpCode });
+            const { access, refresh, user } = response.data;
+
+            // Store tokens
+            localStorage.setItem('accessToken', access);
+            localStorage.setItem('refreshToken', refresh);
+
+            set({
+                accessToken: access,
+                refreshToken: refresh,
+                user: user,
+                isAuthenticated: true
+            });
+            return true;
+        } catch (error) {
+            console.error('OTP Verification error:', error);
+            throw error; // Re-throw to handle in component
+        }
+    },
+
     // Action to refresh the token (using refreshTokenService)
     refreshToken: async () => {
         try {
@@ -55,6 +94,17 @@ const useAuthStore = create((set) => ({
         } catch (error) {
             console.error('Token refresh error:', error);
             return null;
+        }
+    },
+
+    // Action to resend OTP
+    resendOtp: async (email) => {
+        try {
+            await axios.post('http://127.0.0.1:8000/auth/resend-otp/', { email });
+            return true;
+        } catch (error) {
+            console.error('Resend OTP error:', error);
+            throw error;
         }
     },
 

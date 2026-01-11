@@ -57,15 +57,6 @@ function Navbar() {
         }
     };
 
-    // Navigate based on login status using localStorage
-    const handleProfileClick = () => {
-        const accessToken = localStorage.getItem('accessToken'); // Check if user is logged in
-        if (accessToken) {
-            setIsProfilePopoverOpen(!isProfilePopoverOpen); // Toggle profile popover
-        } else {
-            navigate('/auth'); // Navigate to login page if not logged in
-        }
-    };
 
     // Navigate to home on logo click
     const handleLogoClick = () => {
@@ -97,7 +88,7 @@ function Navbar() {
                         variant="ghost"
                         size="lg"
                         color="#0A0E27"
-                        onClick={handleProfileClick} // Conditionally navigate based on login status
+                        onClick={() => setIsProfilePopoverOpen(!isProfilePopoverOpen)} // Always toggle
                         ml={4}
                     />
                     {/* Profile Popover */}

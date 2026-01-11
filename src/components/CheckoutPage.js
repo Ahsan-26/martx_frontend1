@@ -124,8 +124,8 @@ export default function CheckoutPage() {
                 }
 
                 // Confirm the payment using Stripe
-                const cardElement = elements.getElement(CardElement); 
-                console.log('client secret above card function',clientSecret)
+                const cardElement = elements.getElement(CardElement);
+                console.log('client secret above card function', clientSecret)
                 const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
                     payment_method: {
                         card: cardElement,
@@ -154,25 +154,30 @@ export default function CheckoutPage() {
                     postal_code: userInfo.postal_code,
                 });
                 console.log('Client Secret', clientSecret);
-                console.log('Payment Intent:', paymentIntent); 
+                console.log('Payment Intent:', paymentIntent);
 
                 if (error) {
                     console.error('Error during payment confirmation:', error);
+                    toast({
+                        title: 'Payment Failed',
+                        description: error.message,
+                        status: 'error',
+                        duration: 5000,
+                        isClosable: true,
+                    });
                     return;
                 }
 
-                if (error) {
-                    throw new Error(`Payment failed: ${error.message}`);
+                if (paymentIntent && paymentIntent.status === 'succeeded') {
+                    // Notify user of successful payment
+                    toast({
+                        title: 'Payment Successful',
+                        description: `Payment ID: ${paymentIntent.id}`,
+                        status: 'success',
+                        duration: 5000,
+                        isClosable: true,
+                    });
                 }
-
-                // Notify user of successful payment
-                toast({
-                    title: 'Payment Successful',
-                    description: `Payment ID: ${paymentIntent.id}`,
-                    status: 'success',
-                    duration: 5000,
-                    isClosable: true,
-                });
             } else {
                 // If COD, just notify user of successful order creation
                 toast({

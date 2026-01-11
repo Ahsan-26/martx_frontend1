@@ -1,11 +1,13 @@
+import ActivationPage from './components/ActivationPage';
+
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import React from 'react';
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { ToastContainer } from 'react-toastify';  
-import 'react-toastify/dist/ReactToastify.css'; 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Pages and Components
 import LoginPage from './pages/LoginPage';
@@ -19,8 +21,8 @@ import GuestOrderView from './components/GuestOrderView';
 import ImageUpload from './components/Image';
 import LogoutButton from './components/LogoutButton';
 import { useCart } from './hooks/useCart';
-import { initializeCart } from './services/cartService'; 
-import useCartStore from './stores/cartStore'; 
+import { initializeCart } from './services/cartService';
+import useCartStore from './stores/cartStore';
 import GuestInfoModal from './components/GuestInfoModal';
 import OrderHistory from './components/OrderHistory';
 import OrderDetail from './components/OrderDetail';
@@ -78,13 +80,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Elements stripe={stripePromise}>
         <Router>
-      
+
           <Routes>
-          <Route path="/foryou" element={<ForYouProducts/>}/>
-            <Route path="/wishlist" element={<Wishlist/>}/>
+            <Route path="/foryou" element={<ForYouProducts />} />
+            <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/sellersignup" element={<SellerSignup />} />
-          <Route path="/profilepop" element={<ProfilePopover />} />
-          <Route path="/auth" element={<AuthComponent />} />
+            <Route path="/profilepop" element={<ProfilePopover />} />
+            <Route path="/auth" element={<AuthComponent />} />
             <Route path="/products" element={<ProductSearchPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
@@ -106,27 +108,22 @@ function App() {
             {/* Vendor Product Listing */}
             <Route path="/vendors/:vendorId/products" element={<VendorProductsPage />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/vendor-orders" element={<VendorOrders/>} />
-            <Route path="/vendors" element={<VendorListingPage/>} />
+            <Route path="/vendor-orders" element={<VendorOrders />} />
+            <Route path="/vendors" element={<VendorListingPage />} />
             <Route path="/vendorsales" element={<VendorSales />} />
-            
 
-            {/*sidebar router component*/}
-            {/* <Router>
-              <Sidebar>
-                <Routes>
-                  <Route path="/vendorsales" element={<VendorSales />} />
-                  <Route path="/manage-inventory" element={<ManageInventory />} />
-                  <Route path="/earnings" element={<Earnings />} />
-                  <Route path="/vendor-orders" element={<VendorOrders />} />
-                </Routes>
-              </Sidebar>
-    </Router> */}
-            {/* Seller Dashboard Routes */}
-            <Route path="/MainSellerPage" element={<MainSellerPage />} />
-            <Route path="/MainSellerPage" element={<SellerDashboard />} />
-            <Route path="/manage-inventory" element={<ManageInventory />} />
-            <Route path="/earnings" element={<Earnings />} />
+            <Route path="/activate/:uid/:token" element={<ActivationPage />} />
+            <Route path="/auth" element={<AuthComponent />} />
+
+            {/* Seller Dashboard Routes with Layout */}
+            <Route path="/MainSellerPage" element={<MainSellerPage />}>
+              <Route index element={<SellerDashboard />} />
+              <Route path="manage-inventory" element={<ManageInventory />} />
+              <Route path="earnings" element={<Earnings />} />
+              <Route path="vendor-orders" element={<VendorOrders />} />
+              <Route path="vendorsales" element={<VendorSales />} />
+            </Route>
+
             <Route path="/sidebar" element={<Sidebar />} />
           </Routes>
         </Router>

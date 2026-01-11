@@ -33,13 +33,13 @@ const Sidebar = () => {
 
   const links = [
     { to: '/MainSellerPage', label: 'Dashboard', icon: FaTachometerAlt },
-    { to: '/earnings', label: 'Earnings', icon: FaDollarSign },
-    { to: '/services', label: 'My Services', icon: FaServicestack },
-    { to: '/inbox', label: 'Inbox', icon: FaInbox },
-    { to: '/analytics', label: 'Analytics', icon: FaChartBar },
-    { to: '/report', label: 'Report', icon: FaFlag },
-    { to: '/settings', label: 'Settings', icon: FaCog },
-    { to: '/manage-inventory', label: 'Manage Inventory', icon: FaBoxes },
+    { to: '/MainSellerPage/earnings', label: 'Earnings', icon: FaDollarSign },
+    { to: '/MainSellerPage/services', label: 'My Services', icon: FaServicestack },
+    { to: '/MainSellerPage/inbox', label: 'Inbox', icon: FaInbox },
+    { to: '/MainSellerPage/analytics', label: 'Analytics', icon: FaChartBar },
+    { to: '/MainSellerPage/report', label: 'Report', icon: FaFlag },
+    { to: '/MainSellerPage/settings', label: 'Settings', icon: FaCog },
+    { to: '/MainSellerPage/manage-inventory', label: 'Manage Inventory', icon: FaBoxes },
     { to: '/logout', label: 'Logout', icon: FaSignOutAlt },
   ];
 

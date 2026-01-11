@@ -39,7 +39,7 @@ const VendorCard = () => {
                 templateColumns={{ base: "1fr", md: "repeat(3, 1fr)", lg: "repeat(4, 1fr)" }}
                 gap={4}
                 padding={4}
-                justifyContent="center" // Center the grid content
+                justifyContent="center"
             >
                 {vendors.map((vendor) => (
                     <GridItem key={vendor.id}>
@@ -60,7 +60,7 @@ const VendorCard = () => {
                             <Flex justifyContent="flex-end">
                                 <CircularProgress value={vendor.average_rating * 20} color="orange.400" size="45px" thickness="6px">
                                     <CircularProgressLabel fontSize="lg" color="orange.400">
-                                        {vendor.average_rating}
+                                        {vendor.average_rating.toFixed(1)}
                                     </CircularProgressLabel>
                                 </CircularProgress>
                             </Flex>
@@ -76,21 +76,21 @@ const VendorCard = () => {
                                     boxSize={{ base: "80px", md: "100px" }}  // Adjust size responsively
                                 />
                                 <Text fontSize="xl" fontWeight="bold" color="orange.200">
-                                    {vendor.name || 'companyName'}
+                                    {vendor.shop_name || vendor.name || 'Vendor'}
                                 </Text>
                             </VStack>
 
                             {/* Top-Rated Label and Stars */}
                             <Box mt={4} textAlign="center">
                                 <Text fontSize="md" fontWeight="bold" color="orange.300">
-                                    TOP-RATED
+                                    {vendor.average_rating >= 4.5 ? 'TOP-RATED' : 'SELLER'}
                                 </Text>
                                 <HStack justify="center" mt={2}>
                                     {[...Array(5)].map((_, i) => (
                                         <Icon
                                             key={i}
                                             as={FaStar}
-                                            color={i < vendor.average_rating ? "orange.400" : "gray.500"}
+                                            color={i < Math.round(vendor.average_rating) ? "orange.400" : "gray.500"}
                                             boxSize={4}
                                         />
                                     ))}
@@ -99,19 +99,9 @@ const VendorCard = () => {
 
                             {/* Other Details */}
                             <Box mt={4} textAlign="center">
-                                <Text fontSize="sm" color="gray.300">
-                                    {vendor.shop_description}
+                                <Text fontSize="sm" color="gray.300" noOfLines={2}>
+                                    {vendor.shop_description || 'No description available'}
                                 </Text>
-                                <HStack justify="center" mt={2}>
-                                    <HStack>
-                                        <Text fontSize="xs" color="gray.400">Delivery:</Text>
-                                        <Text fontSize="xs">On Time</Text>
-                                    </HStack>
-                                    <HStack>
-                                        <Text fontSize="xs" color="gray.400">Response:</Text>
-                                        <Text fontSize="xs">Quick</Text>
-                                    </HStack>
-                                </HStack>
                             </Box>
 
                             {/* Visit Button */}

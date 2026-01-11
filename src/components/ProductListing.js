@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import {
-    Box, Grid, Image, Text, Button, Flex, Icon, Spinner, Input, Select,VStack, HStack, IconButton
+    Box, Grid, Image, Text, Button, Flex, Icon, Spinner, Input, Select, VStack, HStack, IconButton
 } from '@chakra-ui/react';
 import { FaStar, FaBoxOpen } from 'react-icons/fa';
 import { useCart } from '../hooks/useCart';  // Custom hook for cart operations
@@ -29,10 +29,10 @@ function ProductListing({ vendorId }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({ next: null, previous: null });
-    
+
     const [searchParams] = useSearchParams();
     const categoryId = searchParams.get('category');
-    console.log('Category id',categoryId)
+    console.log('Category id', categoryId)
     const [initialLoad, setInitialLoad] = useState(true);  // Track initial load
     const isInitialRender = useRef(true);
     useEffect(() => {
@@ -41,13 +41,13 @@ function ProductListing({ vendorId }) {
             setInitialLoad(false);
         }
 
-       
+
     }, [location.state, setSortBy, initialLoad]);
 
     useEffect(() => {
         fetchCategories(); // Fetch categories on mount
     }, []);
-    
+
     useEffect(() => {
         if (!initialLoad) {
             fetchProducts();  // Fetch products after initial sort is set
@@ -57,12 +57,12 @@ function ProductListing({ vendorId }) {
 
     useEffect(() => {
         if (isInitialRender.current) {
-          if (categoryId && collectionId !== categoryId) {
-            setCollectionId(categoryId); // Set collectionId only if it differs from categoryId
-          }
-          isInitialRender.current = false; // Mark as no longer the initial render
+            if (categoryId && collectionId !== categoryId) {
+                setCollectionId(categoryId); // Set collectionId only if it differs from categoryId
+            }
+            isInitialRender.current = false; // Mark as no longer the initial render
         }
-      }, [categoryId, collectionId, setCollectionId]);
+    }, [categoryId, collectionId, setCollectionId]);
 
     useEffect(() => {
         // Re-fetch products when sortBy changes
@@ -81,24 +81,18 @@ function ProductListing({ vendorId }) {
     }, [location.state, setSortBy, initialLoad, collectionId]);
     // Debounced search function for query
 
-// New useEffect for syncing categoryId with selectedCollectionId
- // Dependency array now includes collectionId
+    // New useEffect for syncing categoryId with selectedCollectionId
+    // Dependency array now includes collectionId
 
     const debouncedSearch = useCallback(
         debounce(async (searchTerm) => {
             try {
                 setLoading(true);
-                const params = {
-                    search: searchTerm,
-                    collection_id: collectionId, // Use collectionId only if categoryId is not present
-                    unit_price__gt: minPrice,
-                    unit_price__lt: maxPrice,
-                    ordering: sortBy,
-                };
+                const params = getQueryParams(searchTerm);
                 const { data } = await axios.get(`http://127.0.0.1:8000/store/products/`, { params });
                 setProducts(data.results || []);
                 setPagination({ next: data.next, previous: data.previous });
-                console.log('Fetching with params:', params);  // Log the params to check if category_id is included
+                console.log('Fetching with params:', params);
             } catch (error) {
                 setError('Failed to load products.');
             } finally {
@@ -131,22 +125,16 @@ function ProductListing({ vendorId }) {
     }, [query, collectionId, minPrice, maxPrice, sortBy, debouncedSearch, setCollectionId]);
 
     useEffect(() => {
-if(categoryId){
-    fetchProducts()
-}
-},[categoryId])
+        if (categoryId) {
+            fetchProducts()
+        }
+    }, [categoryId])
 
     // Fetch products based on filters and search term
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const params = {
-                search: query,
-                collection_id: collectionId, 
-                unit_price__gt: minPrice,
-                unit_price__lt: maxPrice,
-                ordering: sortBy,
-            };
+            const params = getQueryParams(query);
 
             const { data } = await axios.get(`http://127.0.0.1:8000/store/products/`, { params });
             setProducts(data.results || []);
@@ -194,15 +182,6 @@ if(categoryId){
         }
     };
 
-    // Display loading spinner while fetching products
-    if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <Spinner size="xl" />
-            </Box>
-        );
-    }
-
     // Display error message if there's an error
     if (error) {
         return (
@@ -211,6 +190,16 @@ if(categoryId){
             </Box>
         );
     }
+
+    // Prepare params helper
+    const getQueryParams = (searchTerm) => ({
+        search: searchTerm,
+        collection_id: collectionId,
+        unit_price__gt: minPrice,
+        unit_price__lt: maxPrice,
+        ordering: sortBy,
+        vendor_id: vendorId // Filter by vendor if vendorId is present
+    });
 
     // If no products are found
     if (!products || products.length === 0) {
@@ -225,7 +214,7 @@ if(categoryId){
                     setMinPrice('');
                     setMaxPrice('');
                     setSortBy('');
-                    
+
                 }}>Clear Filters</Button>
             </Box>
         );
@@ -233,9 +222,9 @@ if(categoryId){
 
     // Render the product list
     return (
-       
+
         <Box p={4} mt={0}>
-             {/* <IconButton
+            {/* <IconButton
                     icon={<FaArrowLeft />}
                     aria-label="Back"
                     onClick={handleBackClick}
@@ -248,7 +237,7 @@ if(categoryId){
             <Text fontSize="2xl" mb={4} fontWeight="bold">
                 {vendorId ? 'Vendor Products' : 'Featured Products'}
             </Text>
-           
+
             {/* Horizontal Search, Sorting, and Filters */}
             <HStack mb={6} gap={4} alignItems="center" justifyContent="space-between" flexWrap="wrap">
                 <Input
@@ -307,87 +296,107 @@ if(categoryId){
             </HStack>
 
             {/* Product List */}
-            <Grid templateColumns="repeat(auto-fill, minmax(240px, 1fr))" gap={6}>
-                {products.map((product) => (
-                    
-                    <Box
-                        key={product.id}
-                        p={4}
-                        border="1px solid #e2e8f0"
-                        borderRadius="md"
-                        onClick={() => handleCardClick(product.id)}
-                        _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
-                        transition="transform 0.3s ease"
-                    >
-                        <Box position="relative">
-  <Box position="absolute" right={0} marginLeft={30}>
-    <LikeProduct productId={product.id} />
-  </Box>
-</Box>
-                        
-                        <Box height="200px" width="100%" overflow="hidden" mb={4} borderRadius="md" bg="gray.100">
-                            {product.images && product.images.length > 0 ? (
-                                <Image
-                                    src={product.images[0].image}
-                                    alt={product.title}
-                                    width="100%"
-                                    height="100%"
-                                    objectFit="cover"
-                                    transition="transform 0.3s"
-                                    _hover={{ transform: "scale(1.05)" }}
-                                />
-                            ) : (
-                                <Box height="100%" display="flex" alignItems="center" justifyContent="center">
-                                    <Text>No Image Available</Text>
-                                </Box>
-                            )}
-                        </Box>
-                       
+            {loading ? (
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                    <Spinner size="xl" color="orange.500" />
+                </Box>
+            ) : (!products || products.length === 0) ? (
+                <Box textAlign="center" py={10}>
+                    <Icon as={FaBoxOpen} w={20} h={20} color="gray.400" mb={4} />
+                    <Text fontSize="lg" mb={4}>No products available.</Text>
+                    <Text color="gray.500" mb={6}>Try adjusting your search or filters to find more results.</Text>
+                    <Button colorScheme="blue" onClick={() => {
+                        setQuery('');
+                        setCollectionId('');
+                        setMinPrice('');
+                        setMaxPrice('');
+                        setSortBy('');
+
+                    }}>Clear Filters</Button>
+                </Box>
+            ) : (
+                <Grid templateColumns="repeat(auto-fill, minmax(240px, 1fr))" gap={6}>
+                    {products.map((product) => (
+
                         <Box
-    key={product.id}
-    position="relative"
-    p={4}
-    border="1px solid #e2e8f0"
-    borderRadius="md"
->
-
-    {/* Other product details */}
-</Box>
-
-                        <Text fontWeight="bold" mb={1} noOfLines={1}>
-                            {product.title}
-                        </Text>
-
-                        <Text fontSize="sm" color="gray.600" mb={2} noOfLines={3} minHeight="60px">
-                            {product.description || 'No description available.'}
-                        </Text>
-
-                        <Flex mb={4}>
-                            {[...Array(5)].map((_, i) => (
-                                <Icon key={i} as={FaStar} color={i < product.average_rating ? "orange.400" : "gray.300"} boxSize={4} />
-                            ))}
-                        </Flex>
-
-                        <Text fontWeight="bold" fontSize="lg" mb={4}>
-                            {product.unit_price ? `Rs ${product.unit_price.toFixed(2)}` : 'N/A'}
-                        </Text>
-
-                        <Button
-                            bgGradient="linear(to-b, #132063, #0A0E23)"
-                            color="white"
-                            _hover={{ bgGradient: "linear(to-b, orange.200, orange.600)", boxShadow: "md" }}
-                            size="sm"
-                            width="full"
-                            onClick={(e) => {
-                                e.stopPropagation();  // Prevent navigating to the product page
-                                handleAddToCart(product);
-                            }}
+                            key={product.id}
+                            p={4}
+                            border="1px solid #e2e8f0"
+                            borderRadius="md"
+                            onClick={() => handleCardClick(product.id)}
+                            _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
+                            transition="transform 0.3s ease"
                         >
-                            Add to Cart
-                        </Button>
-                    </Box>
-                ))}
-            </Grid>
+                            <Box position="relative">
+                                <Box position="absolute" right={0} marginLeft={30}>
+                                    <LikeProduct productId={product.id} />
+                                </Box>
+                            </Box>
+
+                            <Box height="200px" width="100%" overflow="hidden" mb={4} borderRadius="md" bg="gray.100">
+                                {product.images && product.images.length > 0 ? (
+                                    <Image
+                                        src={product.images[0].image}
+                                        alt={product.title}
+                                        width="100%"
+                                        height="100%"
+                                        objectFit="cover"
+                                        transition="transform 0.3s"
+                                        _hover={{ transform: "scale(1.05)" }}
+                                    />
+                                ) : (
+                                    <Box height="100%" display="flex" alignItems="center" justifyContent="center">
+                                        <Text>No Image Available</Text>
+                                    </Box>
+                                )}
+                            </Box>
+
+                            <Box
+                                key={product.id}
+                                position="relative"
+                                p={4}
+                                border="1px solid #e2e8f0"
+                                borderRadius="md"
+                            >
+
+                                {/* Other product details */}
+                            </Box>
+
+                            <Text fontWeight="bold" mb={1} noOfLines={1}>
+                                {product.title}
+                            </Text>
+
+                            <Text fontSize="sm" color="gray.600" mb={2} noOfLines={3} minHeight="60px">
+                                {product.description || 'No description available.'}
+                            </Text>
+
+                            <Flex mb={4}>
+                                {[...Array(5)].map((_, i) => (
+                                    <Icon key={i} as={FaStar} color={i < product.average_rating ? "orange.400" : "gray.300"} boxSize={4} />
+                                ))}
+                            </Flex>
+
+                            <Text fontWeight="bold" fontSize="lg" mb={4}>
+                                {product.unit_price ? `Rs ${product.unit_price.toFixed(2)}` : 'N/A'}
+                            </Text>
+
+                            <Button
+                                bgGradient="linear(to-b, #132063, #0A0E23)"
+                                color="white"
+                                _hover={{ bgGradient: "linear(to-b, orange.200, orange.600)", boxShadow: "md" }}
+                                size="sm"
+                                width="full"
+                                onClick={(e) => {
+                                    e.stopPropagation();  // Prevent navigating to the product page
+                                    handleAddToCart(product);
+                                }}
+                            >
+                                Add to Cart
+                            </Button>
+                        </Box>
+                    ))}
+                </Grid>
+            )}
 
             {/* Pagination Controls */}
             <Flex justifyContent="center" mt={8}>

@@ -1,37 +1,178 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Button, Flex, Text, Heading, VStack, IconButton, useColorModeValue
+  Box, Button, Flex, Text, Heading, VStack, IconButton, useColorModeValue, useToast, Center
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import { useNavigate } from 'react-router-dom';
-import useUserStore from '../stores/userStore'; 
+import useUserStore from '../stores/userStore';
+import useAuthStore from '../stores/authStore';
 import ProfilePreview from './ProfilePopover';
+import OTPForm from './OTPForm';
 
-const AuthComponent = ({ onLoginSubmit, onSignupSubmit, error }) => {
-  const [isLogin, setIsLogin] = useState(true); 
+const AuthComponent = () => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [showOTP, setShowOTP] = useState(false);
+  const [emailForOTP, setEmailForOTP] = useState('');
   const [loading, setLoading] = useState(true);
   const bgColor = useColorModeValue('white', 'gray.800');
-  const messageBg = '#0A0E27'; 
+  const messageBg = '#0A0E27';
   const { user, fetchUser } = useUserStore();
+  const { login, signup, verifyOtp, resendOtp } = useAuthStore(); // Use store actions
   const navigate = useNavigate();
+  const toast = useToast(); // Import useToast
   const animationDuration = 0.7;
-  const Dblue = '#0A0E27'; 
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('accessToken'); // Check accessToken, not authToken
     if (token) {
       fetchUser(token);
     }
     setLoading(false);
   }, [fetchUser]);
 
+  const handleLoginSubmit = async (values, setErrors) => {
+    try {
+      const success = await login(values);
+      if (success) {
+        toast({
+          title: "Login Successful",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+        navigate('/dashboard');
+        return true;
+      } else {
+        toast({
+          title: "Login Failed",
+          description: "Please check your credentials.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return false;
+      }
+    } catch (error) {
+      if (error.response?.data) {
+        const data = error.response.data;
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          const fieldErrors = {};
+          Object.keys(data).forEach(key => {
+            fieldErrors[key] = Array.isArray(data[key]) ? data[key].join(' ') : data[key];
+          });
+          setErrors(fieldErrors);
+          return false;
+        }
+      }
+      return false;
+    }
+  };
+
+  const handleSignupSubmit = async (values, setErrors) => {
+    try {
+      const success = await signup(values);
+      if (success) {
+        toast({
+          title: "Verify Your Email",
+          description: "A 6-digit code has been sent to your email.",
+          status: "info",
+          duration: 5000,
+          isClosable: true,
+        });
+        setEmailForOTP(values.email);
+        setShowOTP(true);
+      }
+    } catch (error) {
+      if (error.response?.data) {
+        const data = error.response.data;
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          // Map backend fields to Formik fields
+          const fieldErrors = {};
+          Object.keys(data).forEach(key => {
+            fieldErrors[key] = Array.isArray(data[key]) ? data[key].join(' ') : data[key];
+          });
+          setErrors(fieldErrors);
+
+          // Optionally show a general toast if there are many errors
+          toast({
+            title: "Signup Failed",
+            description: "Please correct the highlighted errors.",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+          });
+          return;
+        }
+      }
+
+      toast({
+        title: "Signup Failed",
+        description: "Something went wrong. Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleOTPSubmit = async (otpCode) => {
+    try {
+      const success = await verifyOtp(emailForOTP, otpCode);
+      if (success) {
+        toast({
+          title: "Account Activated",
+          description: "Verification successful. Welcome to MartX!",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || "Invalid or expired OTP.";
+      toast({
+        title: "Verification Failed",
+        description: errorMessage,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleResendOTP = async () => {
+    try {
+      await resendOtp(emailForOTP);
+      toast({
+        title: "Code Resent",
+        description: "A new OTP has been sent to your email.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to resend Code",
+        description: "Please try again later.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
   if (loading) {
     return <Text>Loading...</Text>;
   }
 
   if (user) {
+    // If user is already logged in, redirect to dashboard (or show profile)
+    // navigate('/dashboard'); 
+    // return null;
+    // Or keep existing behavior if intended, but typically auth page redirects away if logged in
+    // checks if already present
     return <ProfilePreview user={user} />;
   }
 
@@ -63,9 +204,9 @@ const AuthComponent = ({ onLoginSubmit, onSignupSubmit, error }) => {
           w="50%"
           p={8}
           borderRadius={8}
-          display={isLogin ? 'block' : 'none'}
+          display={isLogin && !showOTP ? 'block' : 'none'}
         >
-          <LoginForm onSubmit={onLoginSubmit} error={error} />
+          <LoginForm onSubmit={handleLoginSubmit} />
         </Box>
 
         {/* Signup Form */}
@@ -73,9 +214,24 @@ const AuthComponent = ({ onLoginSubmit, onSignupSubmit, error }) => {
           w="50%"
           p={8}
           borderRadius={8}
-          display={!isLogin ? 'block' : 'none'}
+          display={!isLogin && !showOTP ? 'block' : 'none'}
         >
-          <SignupForm onSubmit={onSignupSubmit} error={error} />
+          <SignupForm onSubmit={handleSignupSubmit} />
+        </Box>
+
+        {/* OTP Form */}
+        <Box
+          w="50%"
+          p={8}
+          borderRadius={8}
+          display={showOTP ? 'block' : 'none'}
+        >
+          <OTPForm onSubmit={handleOTPSubmit} email={emailForOTP} onResend={handleResendOTP} />
+          <Center mt={2}>
+            <Button variant="link" size="sm" onClick={() => setShowOTP(false)} color="gray.500">
+              Back to Signup
+            </Button>
+          </Center>
         </Box>
       </Box>
 
@@ -118,17 +274,17 @@ const AuthComponent = ({ onLoginSubmit, onSignupSubmit, error }) => {
       </Box>
 
       {/* Back Button */}
-     
+
       <IconButton
-    icon={<ArrowBackIcon />}
-    position="absolute"
-    top="20px" // Adjusted spacing from top
-    left="20px" // Adjusted spacing from left
-    backgroundColor={isLogin ? '#0A0E27' : '#F47D31'} // Background color based on current screen
-    onClick={() => navigate('/dashboard')} // Navigate back to a previous page or home
-    color="white" // Text color remains white
-    zIndex={2} // Ensure it stays on top of the sliding elements
-/>
+        icon={<ArrowBackIcon />}
+        position="absolute"
+        top="20px" // Adjusted spacing from top
+        left="20px" // Adjusted spacing from left
+        backgroundColor={isLogin ? '#0A0E27' : '#F47D31'} // Background color based on current screen
+        onClick={() => navigate('/dashboard')} // Navigate back to a previous page or home
+        color="white" // Text color remains white
+        zIndex={2} // Ensure it stays on top of the sliding elements
+      />
 
     </Flex>
   );

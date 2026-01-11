@@ -13,10 +13,9 @@ const LoginSchema = Yup.object().shape({
   password: Yup.string().min(8, 'Password is too short - should be 8 chars minimum.').required('Password is required'),
 });
 
-const LoginForm = () => {
+const LoginForm = ({ onSubmit }) => {
   const bgColor = useColorModeValue('white', 'gray.700');
-  const { login, error, isAuthenticated } = useAuthStore(); // Access Zustand store actions and state
-  const [localError, setLocalError] = useState(''); // Local state for additional error handling
+  const { error } = useAuthStore(); // Access Zustand store state
 
   // Password Input with integrated Show/Hide functionality
   const PasswordInput = () => {
@@ -47,23 +46,15 @@ const LoginForm = () => {
     <Formik
       initialValues={{ email: '', password: '' }}
       validationSchema={LoginSchema}
-      onSubmit={async (values, actions) => {
+      onSubmit={async (values, { setSubmitting, setErrors }) => {
         const credentials = {
           email: values.email,
           password: values.password,
         };
 
-        const loginSuccess = await login(credentials); // Call Zustand's login action
+        const success = await onSubmit(credentials, setErrors);
 
-        if (!loginSuccess) {
-          setLocalError('Login failed. Please check your credentials.');
-        } else {
-          setLocalError('');
-          // Optionally redirect after successful login, if it's not done in the store
-          window.location.href = '/dashboard';
-        }
-
-        actions.setSubmitting(false);
+        setSubmitting(false);
       }}
     >
       {({ isSubmitting, errors, touched }) => (
@@ -107,7 +98,6 @@ const LoginForm = () => {
             </FormControl>
 
             {error && <Text color="red.500" mt={2}>{error}</Text>}
-            {localError && <Text color="red.500" mt={2}>{localError}</Text>}
 
             <Center>
               <Button
