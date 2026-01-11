@@ -118,7 +118,14 @@ export default function CheckoutPage() {
 
             // Step 2: If Stripe is selected, create payment intent and process payment
             if (paymentMethod === 'stripe') {
-                const clientSecret = await createPaymentIntentMutation.mutateAsync(orderId);
+                let clientSecret;
+                try {
+                    clientSecret = await createPaymentIntentMutation.mutateAsync(orderId);
+                } catch (err) {
+                    // Extract error message from API response if possible
+                    const errorMsg = err.response?.data?.error || err.message || 'Payment failed to initialize.';
+                    throw new Error(errorMsg);
+                }
 
                 if (!clientSecret) {
                     throw new Error('Failed to retrieve payment client secret.');
@@ -126,7 +133,6 @@ export default function CheckoutPage() {
 
                 // Confirm the payment using Stripe
                 const cardElement = elements.getElement(CardElement);
-                console.log('client secret above card function', clientSecret)
                 const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
                     payment_method: {
                         card: cardElement,
@@ -136,46 +142,21 @@ export default function CheckoutPage() {
                             address: {
                                 line1: userInfo.address,
                                 city: userInfo.city,
-                                country: userInfo.country, // Now accepts full name
+                                country: userInfo.country,
                                 postal_code: userInfo.postal_code,
                             },
                         },
                     },
                 });
-                if (!cardElement || !clientSecret) {
-                    console.error('CardElement not found or clientSecret is missing');
-                    return;
-                }
-                console.log('Billing Details:', {
-                    name: userInfo.name,
-                    email: userInfo.email,
-                    address: userInfo.address,
-                    city: userInfo.city,
-                    country: userInfo.country,
-                    postal_code: userInfo.postal_code,
-                });
-                console.log('Client Secret', clientSecret);
-                console.log('Payment Intent:', paymentIntent);
-
                 if (error) {
-                    console.error('Error during payment confirmation:', error);
-                    toast({
-                        title: 'Payment Failed',
-                        description: error.message,
-                        status: 'error',
-                        duration: 5000,
-                        isClosable: true,
-                    });
-                    return;
+                    throw new Error(error.message);
                 }
 
                 if (paymentIntent && paymentIntent.status === 'succeeded') {
-                    // Notify user of successful payment
                     toast({
                         title: 'Payment Successful',
-                        description: `Payment ID: ${paymentIntent.id}`,
                         status: 'success',
-                        duration: 5000,
+                        duration: 3000,
                         isClosable: true,
                     });
                 }

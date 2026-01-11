@@ -18,7 +18,7 @@ const API_BASE_URL = 'http://127.0.0.1:8000';
 //                 // Create order for authenticated user
 //                 orderResponse = await api.post(`${API_BASE_URL}/store/orders/`, {
 //                     cart_id: cartId,
-                    
+
 //                 });
 //                 createdOrderId = orderResponse.data.id;
 //             } catch (error) {
@@ -133,18 +133,12 @@ const API_BASE_URL = 'http://127.0.0.1:8000';
 export const createOrder = async ({ cartId = null, userInfo = null, productId = null, quantity = 1, paymentMethod }) => {
     const accessToken = localStorage.getItem('accessToken');  // Check for user token
     const refreshToken = localStorage.getItem('refreshToken');  // Token for refresh
-    let createdOrderId = localStorage.getItem('orderId');  // Check if orderId is already stored in localStorage
+    let createdOrderId = null;
     let orderResponse = null;
     console.log("Selected Payment Method:", paymentMethod);
     if (!cartId && !productId) {
         toast.error('Cart or product information is required to create an order.');
         throw new Error('Cart or product information is required.');
-    }
-
-    // If an order already exists in localStorage, use it
-    if (createdOrderId) {
-        console.log(`Using existing order with ID: ${createdOrderId}`);
-        return { orderId: createdOrderId };  // Return the existing orderId
     }
 
     try {
@@ -184,7 +178,7 @@ export const createOrder = async ({ cartId = null, userInfo = null, productId = 
                 toast.error('Guest user information is incomplete.');
                 throw new Error('Guest user information is incomplete.');
             }
-            
+
 
             const payload = productId
                 ? { product_id: productId, quantity, payment_method: paymentMethod, ...userInfo }  // Added paymentMethod here
@@ -210,7 +204,7 @@ export const createOrder = async ({ cartId = null, userInfo = null, productId = 
 
 // Create payment intent (Stripe or any other payment gateway)
 export const createPaymentIntent = async ({ orderId }) => {
-    console.log('order id from checkout service',orderId)
+    console.log('order id from checkout service', orderId)
     try {
         const response = await axios.post(`${API_BASE_URL}/create-payment-intent/`, {
             order_id: orderId,
