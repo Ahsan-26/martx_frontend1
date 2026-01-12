@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query';  // React Query v5 hook
 import { createOrder, createPaymentIntent } from '../services/checkoutService';  // Import service functions
 import { useToast } from '@chakra-ui/react';  // Import toast for notifications
 import GuestInfoModal from '../components/GuestInfoModal';  // Assume you have this modal for guest info
+import { useCart } from '../hooks/useCart';  // Import useCart hook
 
 // ProductInfo component - displays product details and purchase options
 const ProductInfo = ({ product }) => {
@@ -14,6 +15,7 @@ const ProductInfo = ({ product }) => {
     const [guestInfo, setGuestInfo] = useState({});  // Store guest information
     const navigate = useNavigate();  // For redirecting after order creation
     const toast = useToast();  // To show notifications
+    const { addToCartMutation } = useCart();  // Destructure addToCartMutation from useCart hook
 
     // Step 1: Create mutations for order and payment intent
     // const createOrderMutation = useMutation({
@@ -85,6 +87,34 @@ const ProductInfo = ({ product }) => {
         // }
     };
 
+    // Step 3: Handle Add to Cart click
+    const handleAddToCart = () => {
+        addToCartMutation.mutate(
+            { productId: product.id, quantity },
+            {
+                onSuccess: () => {
+                    toast({
+                        title: 'Added to cart',
+                        description: `${product.title} (x${quantity}) added to cart.`,
+                        status: 'success',
+                        duration: 3000,
+                        isClosable: true,
+                    });
+                },
+                onError: (error) => {
+                    console.error('Failed to add to cart:', error);
+                    toast({
+                        title: 'Error',
+                        description: 'Failed to add item to cart. Please try again.',
+                        status: 'error',
+                        duration: 3000,
+                        isClosable: true,
+                    });
+                },
+            }
+        );
+    };
+
     // Handle guest checkout submission (from the modal)
     const handleGuestSubmit = async (guestInfo) => {
         // setLoading(true);
@@ -146,7 +176,9 @@ const ProductInfo = ({ product }) => {
             </Flex>
 
             <Flex gap={4}>
-                <Button colorScheme="orange" size="lg">Add to Cart</Button>
+                <Button colorScheme="orange" size="lg" onClick={handleAddToCart} isLoading={addToCartMutation.isPending}>
+                    Add to Cart
+                </Button>
                 <Button colorScheme="gray" size="lg" isLoading={loading} onClick={handleBuyNowClick}>Buy Now</Button>
             </Flex>
 

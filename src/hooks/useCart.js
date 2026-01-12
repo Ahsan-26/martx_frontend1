@@ -39,28 +39,28 @@ export const useCart = () => {
     });
 
     // Mutation to add an item to the cart (React Query)
-//  const addToCartMutation = useMutation({
-//         mutationFn: async ({ productId, existingItem }) => {
-//             let currentCartId = cartId;
+    //  const addToCartMutation = useMutation({
+    //         mutationFn: async ({ productId, existingItem }) => {
+    //             let currentCartId = cartId;
 
-//             // If cartId is null, initialize the cart first
-//             if (!currentCartId) {
-//                 const { cartId: newCartId, cartItems } = await initializeCart();
-//                 currentCartId = newCartId;
-//                 setCart(newCartId, cartItems);  // Set Zustand state after initializing the cart
-//             }
+    //             // If cartId is null, initialize the cart first
+    //             if (!currentCartId) {
+    //                 const { cartId: newCartId, cartItems } = await initializeCart();
+    //                 currentCartId = newCartId;
+    //                 setCart(newCartId, cartItems);  // Set Zustand state after initializing the cart
+    //             }
 
-//             // Proceed with adding the item to the cart
-//             return addItemToCart({ cartId: currentCartId, productId, existingItem });
-//         },
-//         onSuccess: (data) => {
-//             addItemLocally(data);  // Add item to Zustand state after successful addition
-//             queryClient.invalidateQueries({ queryKey: ['cart', cartId] });  // Invalidate the cart query to refetch
-//         },
-//     });
+    //             // Proceed with adding the item to the cart
+    //             return addItemToCart({ cartId: currentCartId, productId, existingItem });
+    //         },
+    //         onSuccess: (data) => {
+    //             addItemLocally(data);  // Add item to Zustand state after successful addition
+    //             queryClient.invalidateQueries({ queryKey: ['cart', cartId] });  // Invalidate the cart query to refetch
+    //         },
+    //     });
 
     const addToCartMutation = useMutation({
-        mutationFn: async ({ productId, existingItem }) => {
+        mutationFn: async ({ productId, quantity = 1, existingItem }) => {
             let currentCartId = cartId;
 
             // If cartId is null, initialize the cart first
@@ -76,7 +76,7 @@ export const useCart = () => {
             }
 
             // Proceed with adding the item to the cart
-            return addItemToCart({ cartId: currentCartId, productId, existingItem });
+            return addItemToCart({ cartId: currentCartId, productId, quantity, existingItem });
         },
         onSuccess: (data) => {
             addItemLocally(data);  // Add item to Zustand state after successful addition
@@ -84,7 +84,7 @@ export const useCart = () => {
         },
     });
 
-    
+
     // Mutation to update item quantity (React Query)
     const updateItemMutation = useMutation({
         mutationFn: ({ itemId, quantity }) => updateItemQuantity({ cartId, itemId, quantity }),
@@ -128,7 +128,7 @@ export const useCart = () => {
 
             // Display success notification
             toast.success('Order created successfully! Redirecting to checkout...');
-            
+
             // Step 3: Redirect to the checkout page
             navigate(`/checkout/${createdOrderId}`);
         },

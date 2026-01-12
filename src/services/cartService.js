@@ -80,7 +80,7 @@ export const initializeCart = async () => {
 
 
 // Add an item to the cart (or increase quantity if it exists)
-export const addItemToCart = async ({ cartId, productId }) => {
+export const addItemToCart = async ({ cartId, productId, quantity = 1 }) => {
     // Fetch the current cart to check if the item already exists
     const { data: cartDetails } = await axios.get(`${API_BASE_URL}/carts/${cartId}/`);
 
@@ -91,14 +91,14 @@ export const addItemToCart = async ({ cartId, productId }) => {
         // If the item exists, update its quantity
         const { data: updatedItem } = await axios.patch(
             `${API_BASE_URL}/carts/${cartId}/items/${existingItem.id}/`,
-            { quantity: existingItem.quantity + 1 }
+            { quantity: existingItem.quantity + quantity }
         );
         return updatedItem;
     } else {
         // Add a new item to the cart if it doesn't exist
         const { data: newItem } = await axios.post(`${API_BASE_URL}/carts/${cartId}/items/`, {
             product_id: productId,
-            quantity: 1,
+            quantity: quantity,
         });
 
         // Fetch full product details (if not already included in the item)
@@ -114,7 +114,7 @@ export const updateItemQuantity = async ({ cartId, itemId, quantity }) => {
     if (!cartId || !itemId || quantity < 1) {
         throw new Error('Invalid cart or item information');
     }
-    
+
     console.log('cartId:', cartId, 'itemId:', itemId, 'quantity:', quantity);
     const { data: updatedItem } = await axios.patch(`${API_BASE_URL}/carts/${cartId}/items/${itemId}/`, { quantity });
     console.log('updatedItem:', updatedItem);
