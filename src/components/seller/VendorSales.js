@@ -36,8 +36,8 @@ const VendorSales = () => {
     setTotalSales(total);
   };
 
-   // Filter orders by month and day
-   const filterOrders = (orders, month, day, year) => {
+  // Filter orders by month and day
+  const filterOrders = (orders, month, day, year) => {
     return orders.filter((order) => {
       const orderDate = new Date(order.placed_at);
       const isSameMonth = orderDate.getMonth() === month;
@@ -136,7 +136,7 @@ const VendorSales = () => {
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
           >
-            {[2023, 2024, 2025].map((year) => (
+            {[2025, 2026, 2027].map((year) => (
               <option key={year} value={year}>
                 {year}
               </option>

@@ -1,56 +1,53 @@
 import React from 'react';
-import { Box, Grid, Image, Text, Button, Flex, Icon, Spinner } from '@chakra-ui/react';
-import { FaStar } from 'react-icons/fa';
+import {
+    Box,
+    Grid,
+    Text,
+    Spinner,
+    VStack,
+    Heading,
+    Container,
+    Button,
+    Flex,
+    Icon,
+    HStack
+} from '@chakra-ui/react';
+import { FaHeart, FaShoppingBag, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/authInterceptor';
 import { toast } from 'react-toastify';
-import { useCart } from '../hooks/useCart'; // Custom hook for cart operations
-import useCartStore from '../stores/cartStore'; // Zustand store for cart state
-import LikeProduct from './LikeProduct';
+import { useCart } from '../hooks/useCart';
+import Navbar from './Navbar';
+import useCartStore from '../stores/cartStore';
+import ProductCard from './ProductCard';
 
 function Wishlist() {
-    const [recommendedProducts, setRecommendedProducts] = React.useState([]);
+    const [wishlistItems, setWishlistItems] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
 
-    const { addToCartMutation } = useCart(); // Cart operations
-    const navigate = useNavigate(); // For navigation
-    const cartItems = useCartStore((state) => state.cartItems); // Current cart items
+    const { addToCartMutation } = useCart();
+    const navigate = useNavigate();
+    const cartItems = useCartStore((state) => state.cartItems);
 
-    // Fetch recommended products
+    // Fetch wishlist products
     React.useEffect(() => {
-        const fetchRecommendedProducts = async () => {
-            // Retrieve the access token from localStorage
-            const token = localStorage.getItem('accessToken'); 
-    
-            if (!token) {
-                setError('User is not authenticated.');
-                setLoading(false);
-                return;
-            }
-    
+        const fetchWishlist = async () => {
             try {
-                // Make the API request with Authorization header containing the access token
-                const { data } = await axios.get('http://127.0.0.1:8000/wishlist/', {
-                    headers: {
-                        Authorization: `JWT ${token}`,  // Include the token in the request header
-                    },
-                });
-    
-                setRecommendedProducts(data || []);
+                const { data } = await api.get('http://127.0.0.1:8000/wishlist/');
+                console.log('Wishlist API response:', data);
+                setWishlistItems(data || []);
             } catch (err) {
-                // Handle error if the request fails
-                setError(err.response?.data?.detail || 'Failed to load recommended products. Please try again.');
+                console.error('Wishlist fetch error:', err);
+                setError(err.response?.data?.detail || 'Failed to load wishlist.');
             } finally {
                 setLoading(false);
             }
         };
-    
-        fetchRecommendedProducts();
-    }, []);
-    
 
-    // Handle adding a product to the cart
+        fetchWishlist();
+    }, []);
+
     const handleAddToCart = (product) => {
         const existingItem = cartItems.find(item => item.product.id === product.id);
 
@@ -59,131 +56,121 @@ function Wishlist() {
         } else {
             addToCartMutation.mutate({ productId: product.id }, {
                 onSuccess: () => {
-                    toast.success(`"${product.title}" has been added to your cart!`);
-                },
-                onError: () => {
-                    toast.error('Failed to add item to cart. Please try again.');
+                    toast.success(`"${product.title}" added to cart!`);
                 }
             });
         }
     };
 
-    // Navigate to product details
-    const handleCardClick = (productId) => {
-        navigate(`/product/${productId}`);
-    };
-
-    // Display loading spinner while fetching products
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <Spinner size="xl" />
-            </Box>
+            <Flex justify="center" align="center" minH="60vh">
+                <Spinner size="xl" color="orange.500" thickness="4px" />
+            </Flex>
         );
     }
 
-    // Display error message if there's an error
     if (error) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <Text color="red.500">{error}</Text>
-            </Box>
+            <Container maxW="container.md" py={20}>
+                <VStack spacing={4} textAlign="center">
+                    <Text color="red.500" fontSize="lg">{error}</Text>
+                    <Button onClick={() => window.location.reload()} variant="outline" borderColor="orange.400">
+                        Try Again
+                    </Button>
+                </VStack>
+            </Container>
         );
     }
 
-    // If no products are found
-    if (!recommendedProducts || recommendedProducts.length === 0) {
-        return <Text>No products in wishlist! Like Some!</Text>;
+    if (!wishlistItems || wishlistItems.length === 0) {
+        return (
+            <>
+                <Navbar />
+                <Container maxW="container.xl" py={20}>
+                    <VStack spacing={6} textAlign="center" py={10}>
+                        <Icon as={FaHeart} boxSize={20} color="gray.200" />
+                        <Heading size="lg" color="gray.700">Your wishlist is empty</Heading>
+                        <Text color="gray.500">Save items you like to review them later.</Text>
+                        <Button
+                            leftIcon={<FaShoppingBag />}
+                            bgGradient="linear(to-r, #132063, #0A0E23)"
+                            color="white"
+                            size="lg"
+                            _hover={{ bg: "#F47D31" }}
+                            onClick={() => navigate('/products')}
+                        >
+                            Browse Products
+                        </Button>
+                    </VStack>
+                </Container>
+            </>
+        );
     }
 
     return (
-        <Box p={4} mt={8}>
-            <Text fontSize="2xl" mb={4} fontWeight="bold">My Wishlist</Text>
-            <Grid templateColumns="repeat(auto-fill, minmax(240px, 1fr))" gap={6}>
-                {recommendedProducts.map((product) => (
-                    <Box
-                        key={product.id}
-                        p={4}
-                        border="1px solid #e2e8f0"
-                        borderRadius="md"
-                        onClick={() => handleCardClick(product.id)}
-                        _hover={{ boxShadow: "lg", transform: "translateY(-5px)" }}
-                        transition="transform 0.3s ease"
-                    >
-                        <Box position="relative">
-  <Box position="absolute" right={0} marginLeft={30}>
-    <LikeProduct productId={product.id} />
-  </Box>
-</Box>
- 
-                        <Box
-                            height="200px"
-                            width="100%"
-                            overflow="hidden"
-                            mb={4}
-                            borderRadius="md"
-                            bg="gray.100"
-                        >
-                            {product.images && product.images.length > 0 ? (
-                                <Image
-                                    src={product.images[0].image}
-                                    alt={product.title}
-                                    width="100%"
-                                    height="100%"
-                                    objectFit="cover"
-                                    transition="transform 0.3s"
-                                    _hover={{ transform: "scale(1.05)" }}
-                                />
-                                
-                            ) : (
-                                <Box height="100%" display="flex" alignItems="center" justifyContent="center">
-                                    <Text>No Image Available</Text>
-                                </Box>
-                                
-                            )}
-                        </Box>
+        <>
+            {/* Navbar at the top */}
+            <Navbar />
 
-                        <Text fontWeight="bold" mb={1} noOfLines={1} minHeight="24px">
-                            {product.title}
-                        </Text>
-                       
-
-                        <Text fontSize="sm" color="gray.600" mb={2} noOfLines={3} minHeight="60px">
-                            {product.description || ' '}
-                        </Text>
-
-                        <Flex mb={4} minHeight="24px">
-                            {[...Array(5)].map((_, i) => (
-                                <Icon
-                                    key={i}
-                                    as={FaStar}
-                                    color={i < product.average_rating ? "orange.400" : "gray.300"}
-                                    boxSize={4}
-                                />
-                            ))}
-                        </Flex>
-
-                        <Text fontWeight="bold" fontSize="lg" mb={4} minHeight="24px">
-                            {product.unit_price ? `Rs ${product.unit_price.toFixed(2)}` : 'N/A'}
-                        </Text>
-
+            <Container maxW="container.xl" py={8} mt={4}>
+                {/* Professional Navigation Header */}
+                <Box mb={8}>
+                    <HStack spacing={4} mb={4} flexWrap="wrap">
+                        {/* Back Button */}
                         <Button
-                            bgGradient="linear(to-b,  #132063, #0A0E23)"
-                            color="white"
-                            _hover={{ bgGradient: "linear(to-b,  orange.200, orange.600)", boxShadow: "md" }}
-                            size="sm"
-                            width="full"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddToCart(product);
-                            }}
+                            leftIcon={<FaArrowLeft />}
+                            variant="outline"
+                            borderColor="gray.300"
+                            color="gray.700"
+                            _hover={{ bg: "gray.50", borderColor: "gray.400" }}
+                            onClick={() => navigate(-1)}
+                            size="md"
                         >
-                            Add to Cart
+                            Back
                         </Button>
-                    </Box>
-                ))}
-            </Grid>
-        </Box>
+
+                        <Box flex="1" />
+
+                        {/* Continue Shopping Button */}
+                        <Button
+                            leftIcon={<FaShoppingBag />}
+                            bgGradient="linear(to-r, #132063, #0A0E23)"
+                            color="white"
+                            _hover={{ bgGradient: "linear(to-r, #F47D31, orange.400)", transform: "translateY(-2px)" }}
+                            transition="all 0.2s"
+                            onClick={() => navigate('/products')}
+                            size="md"
+                            boxShadow="md"
+                        >
+                            Continue Shopping
+                        </Button>
+                    </HStack>
+
+                    {/* Title Section */}
+                    <VStack align="start" spacing={1}>
+                        <Heading size="xl" bgGradient="linear(to-r, #132063, #0A0E23)" bgClip="text">
+                            My Wishlist
+                        </Heading>
+                        <Text color="gray.500" fontWeight="medium">
+                            You have {wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'}
+                        </Text>
+                    </VStack>
+                </Box>
+
+                {/* Product Grid using unified ProductCard component */}
+                <Grid templateColumns="repeat(auto-fill, minmax(240px, 1fr))" gap={6}>
+                    {wishlistItems.map((product) => (
+                        <ProductCard
+                            key={product.id}
+                            product={product}
+                            onAddToCart={handleAddToCart}
+                            showLike={true}
+                        />
+                    ))}
+                </Grid>
+            </Container>
+        </>
     );
 }
 

@@ -65,7 +65,7 @@ const VendorProductsPieChart = () => {
 
       // Navigate to the inventory management page
       // Pass the clicked product as state
-      navigate('/manage-inventory', { state: { productTitle: clickedProductTitle } });
+      navigate('/MainSellerPage/manage-inventory', { state: { productTitle: clickedProductTitle } });
     }
   };
 

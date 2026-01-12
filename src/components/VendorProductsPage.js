@@ -6,6 +6,7 @@ import Footer from './Footer'
 import axios from 'axios';
 import { Box, Heading, Text, Flex, VStack, HStack, Icon } from '@chakra-ui/react';
 import { FaStar } from 'react-icons/fa';
+import BackButton from './BackButton';
 const VendorProductsPage = () => {
     const { vendorId } = useParams();
     const [vendor, setVendor] = React.useState(null);
@@ -26,6 +27,8 @@ const VendorProductsPage = () => {
         <>
             <Navbar />
             <Box maxW="1200px" mx="auto" p={4}>
+                <BackButton />
+
                 {vendor && (
                     <Box mb={8} p={6} borderWidth="1px" borderRadius="lg" bg="gray.50">
                         <Heading size="lg" mb={2}>{vendor.shop_name}</Heading>

@@ -15,6 +15,7 @@ import useCategoryStore from '../stores/CategoryStore'; // Import the category s
 import axios from 'axios';
 import debounce from 'lodash.debounce';  // Debouncing utility
 import LikeProduct from './LikeProduct';
+import BackButton from './BackButton';
 function ProductListing({ vendorId }) {
     const { addToCartMutation } = useCart();  // Use cart operations from Zustand store and React Query
     const navigate = useNavigate();  // For navigation
@@ -160,6 +161,8 @@ function ProductListing({ vendorId }) {
     return (
 
         <Box p={4} mt={0}>
+            <BackButton />
+
             <Text fontSize="2xl" mb={4} fontWeight="bold">
                 {vendorId ? 'Vendor Products' : collectionId ? categories.find(c => c.id == collectionId)?.title : 'Featured Products'}
             </Text>

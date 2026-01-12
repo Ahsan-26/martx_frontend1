@@ -6,6 +6,7 @@ import { createOrder, createPaymentIntent } from '../services/checkoutService'; 
 import { useToast } from '@chakra-ui/react';  // Import toast for notifications
 import GuestInfoModal from '../components/GuestInfoModal';  // Assume you have this modal for guest info
 
+// ProductInfo component - displays product details and purchase options
 const ProductInfo = ({ product }) => {
     const [quantity, setQuantity] = useState(1);
     const [loading, setLoading] = useState(false);

@@ -10,6 +10,7 @@ import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import ProductListing from '../components/FeatureProducts';
 import SimilarProducts from '../components/SimilarProducts';
+import BackButton from '../components/BackButton';
 
 const ProductPage = () => {
     const { id } = useParams(); // Get the product ID from the route
@@ -20,7 +21,7 @@ const ProductPage = () => {
 
     // Fetch product details when the component mounts or when the product ID changes
     useEffect(() => {
-       // initializeCart(); // Initialize the cart state
+        // initializeCart(); // Initialize the cart state
 
         const fetchProduct = async () => {
             try {
@@ -43,6 +44,10 @@ const ProductPage = () => {
         <>
             <Navbar />
 
+            <Box maxW={{ base: "100%", lg: "1200px" }} mx="auto" px={10} pt={4}>
+                <BackButton />
+            </Box>
+
             {/* Main Product Layout */}
             <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={8} p={10} maxW={{ base: "100%", lg: "1200px" }} mx="auto">
                 <GridItem>
@@ -54,8 +59,8 @@ const ProductPage = () => {
             </Grid>
 
             {/* Reviews Section */}
-            <ProductReviews reviews={product.reviews} id = {product.id}  />  {/* Pass product reviews */}
-            <SimilarProducts/>
+            <ProductReviews reviews={product.reviews} id={product.id} />  {/* Pass product reviews */}
+            <SimilarProducts />
             <Footer />
         </>
     );
