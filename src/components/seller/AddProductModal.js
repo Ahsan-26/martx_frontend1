@@ -129,22 +129,33 @@ const AddProductModal = ({
               </option>
             ))}
           </Select>
-          <Input
-            type="file"
-            id="product-image-input"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              handleImageUpload(e.target.files);
-              e.target.value = ''; // Reset input to allow re-selecting same files
-            }}
-            mb="10px"
-            bg="white"
-            color="black"
-            sx={{
-              paddingTop: "4px"
-            }}
-          />
+          <Box mb="10px">
+            <Flex alignItems="center" bg="white" p={2} borderRadius="md">
+              <input
+                type="file"
+                id="product-image-input"
+                accept="image/*"
+                multiple
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  if (e.target.files.length > 0) {
+                    handleImageUpload(e.target.files);
+                  }
+                  e.target.value = ''; // Reset input to allow re-selecting same files
+                }}
+              />
+              <label htmlFor="product-image-input" style={{ width: '100%', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                <Button as="span" size="sm" colorScheme="gray" mr={3} pointerEvents="none">
+                  Choose Files
+                </Button>
+                <Text color="gray.600" fontSize="sm" isTruncated>
+                  {newProduct.images && newProduct.images.length > 0
+                    ? `${newProduct.images.length} file${newProduct.images.length !== 1 ? 's' : ''} selected`
+                    : 'No files selected'}
+                </Text>
+              </label>
+            </Flex>
+          </Box>
           {newProduct.images && newProduct.images.length > 0 && (
             <Box mb="10px" p="5px" border="1px solid gray" borderRadius="md">
               <Text fontSize="xs" color="gray.400" mb="2">Selected Images ({newProduct.images.length}):</Text>
