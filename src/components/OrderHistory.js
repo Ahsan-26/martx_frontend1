@@ -48,28 +48,34 @@ const OrderHistory = () => {
     };
 
     const getStatusColor = (paymentStatus) => {
-        switch (paymentStatus) {
-            case 'C': return 'green'; // Complete
-            case 'P': return 'orange'; // Pending
-            case 'F': return 'red'; // Failed
+        switch (paymentStatus?.toLowerCase()) {
+            case 'complete': // Backend returns "Complete"
+            case 'completed': // Just in case
+            case 'c': return 'green';
+            case 'pending':
+            case 'p': return 'orange';
+            case 'failed':
+            case 'f': return 'red';
             default: return 'gray';
         }
     };
 
     const getStatusText = (paymentStatus) => {
-        switch (paymentStatus) {
-            case 'C': return 'Complete';
-            case 'P': return 'Pending';
-            case 'F': return 'Failed';
-            default: return 'Unknown';
-        }
+        // Backend returns "Complete", "Pending", "Failed" already.
+        // But we handle cases just to be safe.
+        if (!paymentStatus) return 'Unknown';
+        return paymentStatus;
     };
 
     const getStatusIcon = (paymentStatus) => {
-        switch (paymentStatus) {
-            case 'C': return FaCheckCircle;
-            case 'P': return FaClock;
-            case 'F': return FaTimesCircle;
+        switch (paymentStatus?.toLowerCase()) {
+            case 'complete':
+            case 'completed':
+            case 'c': return FaCheckCircle;
+            case 'pending':
+            case 'p': return FaClock;
+            case 'failed':
+            case 'f': return FaTimesCircle;
             default: return FaBox;
         }
     };

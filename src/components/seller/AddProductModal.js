@@ -19,6 +19,7 @@ const AddProductModal = ({
   onProductSaved
 }) => {
   const [tags, setTags] = useState(''); // Add state for tags
+  const fileInputRef = React.useRef(null);
 
   const handleTagChange = (event) => {
     setTags(event.target.value);  // Update tags state
@@ -133,7 +134,7 @@ const AddProductModal = ({
             <Flex alignItems="center" bg="white" p={2} borderRadius="md">
               <input
                 type="file"
-                id="product-image-input"
+                ref={fileInputRef}
                 accept="image/*"
                 multiple
                 style={{ display: 'none' }}
@@ -144,16 +145,19 @@ const AddProductModal = ({
                   e.target.value = ''; // Reset input to allow re-selecting same files
                 }}
               />
-              <label htmlFor="product-image-input" style={{ width: '100%', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-                <Button as="span" size="sm" colorScheme="gray" mr={3} pointerEvents="none">
-                  Choose Files
-                </Button>
-                <Text color="gray.600" fontSize="sm" isTruncated>
-                  {newProduct.images && newProduct.images.length > 0
-                    ? `${newProduct.images.length} file${newProduct.images.length !== 1 ? 's' : ''} selected`
-                    : 'No files selected'}
-                </Text>
-              </label>
+              <Button
+                size="sm"
+                colorScheme="gray"
+                mr={3}
+                onClick={() => fileInputRef.current.click()}
+              >
+                Choose Files
+              </Button>
+              <Text color="gray.600" fontSize="sm" isTruncated>
+                {newProduct.images && newProduct.images.length > 0
+                  ? `${newProduct.images.length} file${newProduct.images.length !== 1 ? 's' : ''} selected`
+                  : 'No files selected'}
+              </Text>
             </Flex>
           </Box>
           {newProduct.images && newProduct.images.length > 0 && (

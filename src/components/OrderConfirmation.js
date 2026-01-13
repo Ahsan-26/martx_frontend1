@@ -7,6 +7,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CheckIcon, ArrowForwardIcon } from '@chakra-ui/icons';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import jsPDF from 'jspdf';
+import { FaDownload } from 'react-icons/fa';
 
 const MotionBox = motion(Box);
 const MotionCircle = motion(Circle);
@@ -69,6 +71,74 @@ const OrderConfirmation = () => {
             case 'failed': return 'red';
             default: return 'gray';
         }
+    };
+
+    const downloadInvoice = () => {
+        const doc = new jsPDF();
+
+        // Company Logo/Name
+        doc.setFontSize(20);
+        doc.setTextColor(244, 125, 49); // MartX Orange #F47D31
+        doc.text("MartX", 20, 20);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("Your Premium Shopping Destination", 20, 25);
+
+        // Invoice Title
+        doc.setFontSize(16);
+        doc.setTextColor(0, 0, 0);
+        doc.text("INVOICE", 150, 20);
+
+        // Order Details
+        doc.setFontSize(10);
+        doc.text(`Order ID: #${orderDetails.id}`, 150, 30);
+        const date = new Date().toLocaleDateString();
+        doc.text(`Date: ${date}`, 150, 35);
+        doc.text(`Status: ${orderDetails.payment_status}`, 150, 40);
+
+        // Customer Details (if available)
+        doc.text(`Customer: ${orderDetails.buyer_name || orderDetails.customer?.user?.first_name || 'Guest'}`, 20, 40);
+
+        // Divider
+        doc.setLineWidth(0.5);
+        doc.line(20, 45, 190, 45);
+
+        // Item Table Header
+        let yPos = 55;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text("Item", 20, yPos);
+        doc.text("Qty", 120, yPos);
+        doc.text("Price", 140, yPos);
+        doc.text("Total", 170, yPos);
+
+        // Items
+        doc.setFont(undefined, 'normal');
+        yPos += 10;
+
+        orderDetails.items.forEach((item) => {
+            const itemTotal = item.quantity * item.unit_price;
+            doc.text(item.product.title.substring(0, 40), 20, yPos);
+            doc.text(item.quantity.toString(), 120, yPos);
+            doc.text(`${item.unit_price.toFixed(2)}`, 140, yPos);
+            doc.text(`${itemTotal.toFixed(2)}`, 170, yPos);
+            yPos += 10;
+        });
+
+        // Total
+        doc.line(20, yPos, 190, yPos);
+        yPos += 10;
+        doc.setFont(undefined, 'bold');
+        doc.text("Grand Total:", 140, yPos);
+        doc.text(`Rs ${orderDetails.total.toLocaleString()}`, 170, yPos);
+
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text("Thank you for shopping with MartX!", 105, 280, null, null, "center");
+
+        doc.save(`Invoice_MartX_${orderDetails.id}.pdf`);
     };
 
     if (loading) {
@@ -203,7 +273,13 @@ const OrderConfirmation = () => {
                         >
                             Return to Shopping
                         </Button>
-                        <Button variant="outline" size="lg" w="full" isDisabled>
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            w="full"
+                            onClick={downloadInvoice}
+                            leftIcon={<Icon as={FaDownload} />}
+                        >
                             Download Invoice
                         </Button>
                     </Stack>
