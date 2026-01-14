@@ -100,6 +100,7 @@ const ManageInventory = () => {
       inventory: product.inventory,
       unit_price: product.unit_price,
       collection: product.collection,
+      existingImages: product.images || [], // Store existing images separate from new uploads
       images: [], // Reset images for new uploads while editing
     });
     setEditingProductId(product.id);

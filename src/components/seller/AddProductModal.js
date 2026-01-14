@@ -155,11 +155,33 @@ const AddProductModal = ({
               </Button>
               <Text color="gray.600" fontSize="sm" isTruncated>
                 {newProduct.images && newProduct.images.length > 0
-                  ? `${newProduct.images.length} file${newProduct.images.length !== 1 ? 's' : ''} selected`
-                  : 'No files selected'}
+                  ? `${newProduct.images.length} new file${newProduct.images.length !== 1 ? 's' : ''} selected`
+                  : 'No new files selected'}
               </Text>
             </Flex>
           </Box>
+
+          {/* Display Existing Images (from Backend) */}
+          {newProduct.existingImages && newProduct.existingImages.length > 0 && (
+            <Box mb="10px" p="5px" border="1px solid gray" borderRadius="md">
+              <Text fontSize="xs" color="gray.400" mb="2">Existing Images ({newProduct.existingImages.length}):</Text>
+              <Flex wrap="wrap" gap="2">
+                {newProduct.existingImages.map((imgObj, index) => (
+                  <Box key={imgObj.id || index} position="relative" w="50px" h="50px" border="1px solid #F47D31" borderRadius="sm">
+                    <img
+                      src={imgObj.image}
+                      alt="existing"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    {/*
+                         TODO: Add delete functionality for existing images.
+                         For now, we just display them to fix the "no files" confusion.
+                     */}
+                  </Box>
+                ))}
+              </Flex>
+            </Box>
+          )}
           {newProduct.images && newProduct.images.length > 0 && (
             <Box mb="10px" p="5px" border="1px solid gray" borderRadius="md">
               <Text fontSize="xs" color="gray.400" mb="2">Selected Images ({newProduct.images.length}):</Text>
